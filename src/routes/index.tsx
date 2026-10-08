@@ -31,7 +31,7 @@ function Dashboard() {
   const chart = useMemo(() => {
     const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return localDateStr(d); });
     const net = (tx: { type: string; amount: number }) => (tx.type === "income" ? tx.amount : tx.type === "expense" ? -tx.amount : 0);
-    let run = txs.filter((x) => x.date < days[0]).reduce((a, x) => a + net(x), 0);
+    let run = txs.filter((x) => x.date < days[0]!).reduce((a, x) => a + net(x), 0);
     return days.map((d) => {
       run += txs.filter((x) => x.date === d).reduce((a, x) => a + net(x), 0);
       return { d: new Date(d).toLocaleDateString(lang === "ar" ? "ar-IQ" : "en-US", { weekday: "short" }), v: run };

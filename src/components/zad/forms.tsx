@@ -21,7 +21,7 @@ export function TxForm({ type, open, onOpenChange }: { type: "income" | "expense
     e.preventDefault();
     const n = Number(amount.replace(/[^\d.]/g, ""));
     const res = type === "income" ? addIncome(n, note.trim(), date, vaultId === "auto" ? null : vaultId) : addExpense(n, note.trim(), date, vaultId);
-    if (!res.ok) return toast.error(t[res.error]);
+    if (!res.ok) { toast.error(t[res.error]); return; }
     toast.success(t.added);
     setAmount(""); setNote("");
     onOpenChange(false);
