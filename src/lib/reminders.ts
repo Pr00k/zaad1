@@ -15,8 +15,8 @@ export function localDateStr(d = new Date()) {
 }
 
 function anchor(r: ReminderRule) {
-  const [y, m, d] = r.date.split("-").map(Number);
-  const [hh, mm] = r.time.split(":").map(Number);
+  const [y = 0, m = 1, d = 1] = r.date.split("-").map(Number);
+  const [hh = 0, mm = 0] = r.time.split(":").map(Number);
   return new Date(y, m - 1, d, hh, mm, 0, 0);
 }
 
@@ -70,7 +70,7 @@ export function playTone(kind: string) {
       urgent: [[1200, 0], [1200, 0.12], [1200, 0.24], [1200, 0.36], [1200, 0.48]],
       bell: [[1318, 0], [988, 0.4]],
     };
-    for (const [f, t] of pattern[kind] ?? pattern.default) {
+    for (const [f, t] of pattern[kind] ?? pattern["default"] ?? []) {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.frequency.value = f; o.type = kind === "urgent" ? "square" : "sine";
       g.gain.setValueAtTime(0.0001, ctx.currentTime + t);

@@ -88,8 +88,8 @@ export const useZad = create<State>()(
         set((s) => ({ txs: [tx, ...s.txs].sort((a, b) => b.createdAt - a.createdAt), vaults: applyTx(s.vaults, tx, 1) }));
       },
       saveVault(v) {
-        set((s) => v.id && s.vaults.some((x) => x.id === v.id)
-          ? { vaults: s.vaults.map((x) => (x.id === v.id ? { ...x, ...v, key: v.name ? undefined : x.key } : x)) }
+        set((s): Partial<State> => v.id && s.vaults.some((x) => x.id === v.id)
+          ? { vaults: s.vaults.map((x): Vault => (x.id === v.id ? ({ ...x, ...v, ...(v.name ? { key: "" } : {}) } as Vault) : x)) }
           : { vaults: [...s.vaults, { id: uid(), name: v.name ?? "", pct: v.pct ?? 0, balance: 0, color: v.color ?? "var(--chart-2)" }] });
       },
       deleteVault(id) {
@@ -97,15 +97,16 @@ export const useZad = create<State>()(
           const victim = s.vaults.find((v) => v.id === id);
           const rest = s.vaults.filter((v) => v.id !== id);
           if (!victim || rest.length === 0) return s;
-          rest[0] = { ...rest[0], balance: r2(rest[0].balance + victim.balance), pct: rest[0].pct + victim.pct };
-          return { vaults: rest, goals: s.goals.map((g) => (g.vaultId === id ? { ...g, vaultId: rest[0].id } : g)) };
+          const f = rest[0]!;
+          rest[0] = { ...f, balance: r2(f.balance + victim.balance), pct: f.pct + victim.pct };
+          return { vaults: rest, goals: s.goals.map((g) => (g.vaultId === id ? { ...g, vaultId: f.id } : g)) };
         });
       },
       setPcts(p) { set((s) => ({ vaults: s.vaults.map((v) => ({ ...v, pct: p[v.id] ?? v.pct })) })); },
       saveGoal(g) {
-        set((s) => g.id
+        set((s): Partial<State> => g.id
           ? { goals: s.goals.map((x) => (x.id === g.id ? { ...x, ...g } : x)) }
-          : { goals: [...s.goals, { id: uid(), name: g.name ?? "", target: g.target ?? 0, saved: 0, deadline: g.deadline ?? "", vaultId: g.vaultId ?? s.vaults[0]?.id, createdAt: Date.now() }] });
+          : { goals: [...s.goals, { id: uid(), name: g.name ?? "", target: g.target ?? 0, saved: 0, deadline: g.deadline ?? "", vaultId: g.vaultId ?? s.vaults[0]?.id ?? "", createdAt: Date.now() }] });
       },
       deleteGoal(id) {
         set((s) => {
