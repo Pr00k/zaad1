@@ -9,5 +9,5 @@ export const Route = createFileRoute("/expenses")({
 
 function Page() {
   const { t } = useT();
-  return <PageTitle title={t["expenses" === "expenses" ? "expense" : "expenses"] as string} />;
+  return <PageTitle title={t.expense} />;
 }
