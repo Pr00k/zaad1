@@ -17,7 +17,7 @@ const ar = {
   language: "اللغة", currency: "العملة", yourName: "اسمك", export: "تصدير نسخة احتياطية", import: "استيراد نسخة", reset: "مسح كل البيانات", resetConfirm: "سيتم حذف كل البيانات نهائياً. متأكد؟",
   insufficient: "الرصيد غير كافٍ في هذه الخزنة", invalidAmount: "أدخل مبلغاً صحيحاً", deleted: "تم الحذف", undo: "تراجع", added: "تمت الإضافة",
   essential: "الأساسيات", savings: "الادخار", investment: "الاستثمار", learning: "التعلم", lifestyle: "الترفيه", giving: "العطاء",
-  thisMonth: "هذا الشهر", spent: "المصروف", earned: "الدخل", search: "بحث", all: "الكل",
+  thisMonth: "هذا الشهر", spent: "المصروف", earned: "الدخل", search: "بحث", all: "الكل", color: "اللون",
   sounds: { default: "افتراضي", gentle: "هادئ", urgent: "عاجل", bell: "جرس" },
 };
 type Dict = typeof ar;
@@ -38,7 +38,7 @@ const en: Dict = {
   language: "Language", currency: "Currency", yourName: "Your name", export: "Export backup", import: "Import backup", reset: "Erase all data", resetConfirm: "All data will be deleted permanently. Sure?",
   insufficient: "Not enough balance in this vault", invalidAmount: "Enter a valid amount", deleted: "Deleted", undo: "Undo", added: "Added",
   essential: "Essentials", savings: "Savings", investment: "Investment", learning: "Learning", lifestyle: "Lifestyle", giving: "Giving",
-  thisMonth: "This month", spent: "Spent", earned: "Earned", search: "Search", all: "All",
+  thisMonth: "This month", spent: "Spent", earned: "Earned", search: "Search", all: "All", color: "Color",
   sounds: { default: "Default", gentle: "Gentle", urgent: "Urgent", bell: "Bell" },
 };
 
