@@ -120,7 +120,7 @@ function Page() {
             <Field label={t.pct}>
               <input type="number" min={0} max={100} value={editing.pct ?? 0} onChange={(e) => setEditing({ ...editing, pct: Number(e.target.value) })} className={inputCls} />
             </Field>
-            <Field label={t.pct === "" ? "" : "🎨"}>
+            <Field label={t.color}>
               <div className="flex gap-2">
                 {COLORS.map((c) => (
                   <button
