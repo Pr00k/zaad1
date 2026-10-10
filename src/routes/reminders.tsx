@@ -70,7 +70,7 @@ function Page() {
                 <p className="truncate text-xs text-muted-foreground">
                   {r.time} · {repeatLabel(r)}
                   {goal && <> · 🎯 {goal.name}</>}
-                  {r.nextAt && <> · {t.next}: {new Date(r.nextAt).toLocaleDateString(lang === "ar" ? "ar-IQ" : "en-US", { day: "numeric", month: "short" })}</>}
+                  {r.nextAt && <> · {t.next}: {new Date(r.nextAt).toLocaleDateString(lang === "ar" ? "ar-IQ" : lang, { day: "numeric", month: "short" })}</>}
                 </p>
               </div>
               <Switch checked={r.enabled} onCheckedChange={() => toggleReminder(r.id)} aria-label={t.enabled} />
