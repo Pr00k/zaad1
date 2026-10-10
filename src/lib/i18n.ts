@@ -14,7 +14,7 @@ const ar = {
   every: "كل", minutes: "دقائق", hours: "ساعات", days: "أيام", weeks: "أسابيع", months: "أشهر",
   linkedGoal: "مرتبط بهدف", none: "بدون", snooze: "غفوة", min: "د", vibrate: "اهتزاز", sound: "الصوت", enabled: "مفعّل", next: "التالي",
   done: "تم", notifPerm: "السماح بالإشعارات", notifOn: "الإشعارات مفعّلة", notifOff: "الإشعارات غير مسموحة",
-  language: "اللغة", currency: "العملة", yourName: "اسمك", export: "تصدير نسخة احتياطية", import: "استيراد نسخة", reset: "مسح كل البيانات", resetConfirm: "سيتم حذف كل البيانات نهائياً. متأكد؟",
+  language: "اللغة", account: "الحساب", signInGoogle: "المتابعة بحساب Google", signOut: "تسجيل الخروج", profile: "الملف الشخصي", photoOptional: "الصورة الشخصية (اختياري)", choosePhoto: "اختر صورة",  welcome: "مرحباً بك في زاد", signInHint: "سجّل دخولك بحساب Gmail لحفظ ملفك الشخصي.", skip: "المتابعة بدون حساب", uiFallback: "النصوص تظهر بالإنجليزية لهذه اللغة، والأرقام والتواريخ بصيغتها.", currency: "العملة", yourName: "اسمك", export: "تصدير نسخة احتياطية", import: "استيراد نسخة", reset: "مسح كل البيانات", resetConfirm: "سيتم حذف كل البيانات نهائياً. متأكد؟",
   insufficient: "الرصيد غير كافٍ في هذه الخزنة", invalidAmount: "أدخل مبلغاً صحيحاً", deleted: "تم الحذف", undo: "تراجع", added: "تمت الإضافة",
   essential: "الأساسيات", savings: "الادخار", investment: "الاستثمار", learning: "التعلم", lifestyle: "الترفيه", giving: "العطاء",
   thisMonth: "هذا الشهر", spent: "المصروف", earned: "الدخل", search: "بحث", all: "الكل", color: "اللون",
@@ -35,7 +35,7 @@ const en: Dict = {
   every: "Every", minutes: "minutes", hours: "hours", days: "days", weeks: "weeks", months: "months",
   linkedGoal: "Linked goal", none: "None", snooze: "Snooze", min: "m", vibrate: "Vibrate", sound: "Sound", enabled: "Enabled", next: "Next",
   done: "Done", notifPerm: "Allow notifications", notifOn: "Notifications on", notifOff: "Notifications blocked",
-  language: "Language", currency: "Currency", yourName: "Your name", export: "Export backup", import: "Import backup", reset: "Erase all data", resetConfirm: "All data will be deleted permanently. Sure?",
+  language: "Language", account: "Account", signInGoogle: "Continue with Google", signOut: "Sign out", profile: "Profile", photoOptional: "Profile photo (optional)", choosePhoto: "Choose photo",  welcome: "Welcome to Zad", signInHint: "Sign in with your Gmail account to save your profile.", skip: "Continue without account", uiFallback: "Interface text shows in English for this language; numbers and dates use its format.", currency: "Currency", yourName: "Your name", export: "Export backup", import: "Import backup", reset: "Erase all data", resetConfirm: "All data will be deleted permanently. Sure?",
   insufficient: "Not enough balance in this vault", invalidAmount: "Enter a valid amount", deleted: "Deleted", undo: "Undo", added: "Added",
   essential: "Essentials", savings: "Savings", investment: "Investment", learning: "Learning", lifestyle: "Lifestyle", giving: "Giving",
   thisMonth: "This month", spent: "Spent", earned: "Earned", search: "Search", all: "All", color: "Color",
@@ -43,9 +43,17 @@ const en: Dict = {
 };
 
 export const dicts = { ar, en };
-export type Lang = keyof typeof dicts;
+export type Lang = string;
+const RTL = new Set(["ar","he","fa","ur","ps","yi","ckb","dv","sd","ug","ku"]);
+export const isRtl = (l: string) => RTL.has(l.split("-")[0]!);
+export const LANG_CODES = "af am ar as az be bg bn bo bs ca ceb ckb co cs cy da de dv el en eo es et eu fa fi fil fj fo fr fy ga gd gl gn gu ha haw he hi hmn hr ht hu hy id ig is it ja jv ka kk km kn ko ku ky la lb lo lt lv mg mi mk ml mn mr ms mt my ne nl no ny om or pa pl ps pt qu ro ru rw sd si sk sl sm sn so sq sr st su sv sw ta te tg th ti tk tl to tr tt ug uk ur uz vi wo xh yi yo zh zu".split(" ");
+export function langName(code: string, inLang: string) {
+  try { return new Intl.DisplayNames([inLang], { type: "language" }).of(code) ?? code; } catch { return code; }
+}
+export function nativeName(code: string) { return langName(code, code); }
 
 export function useT() {
   const lang = useZad((s) => s.settings.lang);
-  return { t: dicts[lang], lang, dir: lang === "ar" ? "rtl" : "ltr" } as const;
+  const t = lang === "ar" ? dicts.ar : dicts.en;
+  return { t, lang, dir: isRtl(lang) ? "rtl" : "ltr" } as const;
 }

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { computeNext, localDateStr, type Repeat, type Unit } from "./reminders";
 
-export type Currency = "IQD" | "USD" | "SAR" | "AED" | "EUR";
+export type Currency = string;
 export interface Vault { id: string; key?: string; name: string; pct: number; balance: number; color: string }
 export interface Tx { id: string; type: "income" | "expense" | "goal"; amount: number; note: string; date: string; vaultId: string | null; createdAt: number }
 export interface Goal { id: string; name: string; target: number; saved: number; deadline: string; vaultId: string; createdAt: number }
@@ -10,7 +10,7 @@ export interface Reminder {
   id: string; title: string; date: string; time: string; repeat: Repeat; intervalValue: number; intervalUnit: Unit;
   goalId: string | null; enabled: boolean; sound: string; snoozeMin: number; vibrate: boolean; nextAt: number | null; lastFired?: number;
 }
-export interface Settings { name: string; currency: Currency; lang: "ar" | "en" }
+export interface Settings { name: string; currency: Currency; lang: string }
 
 const uid = () => crypto.randomUUID();
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -177,13 +177,30 @@ function applyTx(vaults: Vault[], tx: Tx, sign: 1 | -1): Vault[] {
   return vaults.map((v) => ({ ...v, balance: r2(v.balance + (dir * tx.amount * v.pct) / total) }));
 }
 
-const CUR: Record<Currency, { sym: string; dec: number }> = {
-  IQD: { sym: "د.ع", dec: 0 }, USD: { sym: "$", dec: 2 }, SAR: { sym: "ر.س", dec: 2 }, AED: { sym: "د.إ", dec: 2 }, EUR: { sym: "€", dec: 2 },
-};
-export const CURRENCIES = Object.keys(CUR) as Currency[];
+const AR_SYM: Record<string, string> = { IQD: "د.ع", SAR: "ر.س", AED: "د.إ", KWD: "د.ك", QAR: "ر.ق", BHD: "د.ب", OMR: "ر.ع", JOD: "د.أ", EGP: "ج.م", LYD: "د.ل", TND: "د.ت", DZD: "د.ج", MAD: "د.م", SYP: "ل.س", LBP: "ل.ل", YER: "ر.ي", SDG: "ج.س" };
+const FALLBACK = ["IQD","USD","EUR","SAR","AED","GBP","JPY","CNY","TRY","EGP","KWD","QAR","BHD","OMR","JOD","INR","PKR","IRR","RUB","CAD","AUD","CHF"];
+export const CURRENCIES: string[] = (() => {
+  try { const f = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf; if (f) return f("currency"); } catch { /* ignore */ }
+  return FALLBACK;
+})();
+export function currencyName(code: string, lang: string) {
+  try { return new Intl.DisplayNames([lang], { type: "currency" }).of(code) ?? code; } catch { return code; }
+}
+function curInfo(code: string, lang: string) {
+  let dec = 2, sym = code;
+  try {
+    const nf = new Intl.NumberFormat(lang, { style: "currency", currency: code, currencyDisplay: "narrowSymbol" });
+    dec = nf.resolvedOptions().maximumFractionDigits ?? 2;
+    sym = nf.formatToParts(0).find((p) => p.type === "currency")?.value ?? code;
+  } catch { /* ignore */ }
+  if (code === "IQD") dec = 0;
+  if (lang === "ar" && AR_SYM[code]) sym = AR_SYM[code];
+  return { sym, dec };
+}
 
 export function useMoney() {
   const { currency, lang } = useZad((s) => s.settings);
-  const c = CUR[currency];
-  return (n: number) => `${new Intl.NumberFormat(lang === "ar" ? "ar-IQ" : "en-US", { maximumFractionDigits: c.dec, minimumFractionDigits: 0 }).format(n)} ${c.sym}`;
+  const c = curInfo(currency, lang);
+  const loc = lang === "ar" ? "ar-IQ" : lang;
+  return (n: number) => { let s: string; try { s = new Intl.NumberFormat(loc, { maximumFractionDigits: c.dec, minimumFractionDigits: 0 }).format(n); } catch { s = String(n); } return `${s} ${c.sym}`; };
 }

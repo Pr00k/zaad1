@@ -34,7 +34,7 @@ function Dashboard() {
     let run = txs.filter((x) => x.date < days[0]!).reduce((a, x) => a + net(x), 0);
     return days.map((d) => {
       run += txs.filter((x) => x.date === d).reduce((a, x) => a + net(x), 0);
-      return { d: new Date(d).toLocaleDateString(lang === "ar" ? "ar-IQ" : "en-US", { weekday: "short" }), v: run };
+      return { d: new Date(d).toLocaleDateString(lang === "ar" ? "ar-IQ" : lang, { weekday: "short" }), v: run };
     });
   }, [txs, lang]);
 

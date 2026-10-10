@@ -59,7 +59,7 @@ function Page() {
                   <p className="truncate font-medium">{g.name}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {t.fundedFrom}: {vaultName(vault, t)}
-                    {g.deadline && <> · {new Date(g.deadline).toLocaleDateString(lang === "ar" ? "ar-IQ" : "en-US", { day: "numeric", month: "short", year: "numeric" })}</>}
+                    {g.deadline && <> · {new Date(g.deadline).toLocaleDateString(lang === "ar" ? "ar-IQ" : lang, { day: "numeric", month: "short", year: "numeric" })}</>}
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-1">

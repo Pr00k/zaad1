@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as GoalsRouteImport } from './routes/goals'
 import { Route as RemindersRouteImport } from './routes/reminders'
@@ -19,6 +20,11 @@ import { Route as VaultsRouteImport } from './routes/vaults'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExpensesRoute = ExpensesRouteImport.update({
@@ -49,6 +55,7 @@ const VaultsRoute = VaultsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/expenses': typeof ExpensesRoute
   '/goals': typeof GoalsRoute
   '/reminders': typeof RemindersRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/expenses': typeof ExpensesRoute
   '/goals': typeof GoalsRoute
   '/reminders': typeof RemindersRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/expenses': typeof ExpensesRoute
   '/goals': typeof GoalsRoute
   '/reminders': typeof RemindersRoute
@@ -75,12 +84,26 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/expenses' | '/goals' | '/reminders' | '/settings' | '/vaults'
+    | '/'
+    | '/auth'
+    | '/expenses'
+    | '/goals'
+    | '/reminders'
+    | '/settings'
+    | '/vaults'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/expenses' | '/goals' | '/reminders' | '/settings' | '/vaults'
+  to:
+    | '/'
+    | '/auth'
+    | '/expenses'
+    | '/goals'
+    | '/reminders'
+    | '/settings'
+    | '/vaults'
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/expenses'
     | '/goals'
     | '/reminders'
@@ -90,6 +113,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   ExpensesRoute: typeof ExpensesRoute
   GoalsRoute: typeof GoalsRoute
   RemindersRoute: typeof RemindersRoute
@@ -104,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/expenses': {
@@ -146,6 +177,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   ExpensesRoute: ExpensesRoute,
   GoalsRoute: GoalsRoute,
   RemindersRoute: RemindersRoute,
