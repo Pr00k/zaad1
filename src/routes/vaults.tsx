@@ -52,7 +52,7 @@ function Page() {
   return (
     <>
       <PageTitle title={t.vaults} action={
-        <Button variant="gold" size="sm" onClick={() => setEditing({ color: COLORS[vaults.length % COLORS.length] })}>
+        <Button variant="gold" size="sm" onClick={() => setEditing({ color: COLORS[vaults.length % COLORS.length] ?? COLORS[0]! })}>
           <Plus className="size-4" /> {t.addVault}
         </Button>
       } />
