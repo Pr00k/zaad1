@@ -12,7 +12,7 @@ export function useAuth() {
   const loadProfile = async (u: User | null) => {
     if (!u) { setProfile(null); return; }
     const { data } = await supabase.from("profiles").select("id, display_name, avatar_url").eq("id", u.id).maybeSingle();
-    setProfile(data ?? { id: u.id, display_name: (u.user_metadata?.full_name as string) ?? null, avatar_url: null });
+    setProfile(data ?? { id: u.id, display_name: (u.user_metadata?.['full_name'] as string) ?? null, avatar_url: null });
   };
 
   useEffect(() => {

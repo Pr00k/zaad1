@@ -57,17 +57,17 @@ function AuthPage() {
   };
 
   const onFile = async (f: File) => {
-    if (!f.type.startsWith("image/") || f.size > 10 * 1024 * 1024) return toast.error(t.invalidAmount);
+    if (!f.type.startsWith("image/") || f.size > 10 * 1024 * 1024) { toast.error(t.invalidAmount); return; }
     try { setAvatar(await fileToAvatar(f)); } catch { toast.error(t.invalidAmount); }
   };
 
   const save = async () => {
     const n = name.trim().slice(0, 40);
-    if (!n) return toast.error(t.yourName);
+    if (!n) { toast.error(t.yourName); return; }
     setBusy(true);
     const ok = await saveProfile(n, avatar);
     setBusy(false);
-    if (!ok) return toast.error("Error");
+    if (!ok) { toast.error("Error"); return; }
     setSettings({ name: n });
     toast.success(t.done);
     nav({ to: "/" });
