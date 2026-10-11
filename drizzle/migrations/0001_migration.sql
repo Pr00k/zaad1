@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN use_google_avatar boolean NOT NULL DEFAULT true;

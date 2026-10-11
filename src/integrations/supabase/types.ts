@@ -21,6 +21,7 @@ export type Database = {
           display_name: string | null
           id: string
           updated_at: string
+          use_google_avatar: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -28,6 +29,7 @@ export type Database = {
           display_name?: string | null
           id: string
           updated_at?: string
+          use_google_avatar?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -35,6 +37,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string
+          use_google_avatar?: boolean
         }
         Relationships: []
       }

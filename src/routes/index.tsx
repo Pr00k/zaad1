@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Target, Wallet, Receipt } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { useT } from "@/lib/i18n";
+import { useT, greetingKey } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { useMoney, useZad } from "@/lib/store";
 import { localDateStr } from "@/lib/reminders";
 import { TxForm } from "@/components/zad/forms";
@@ -23,8 +24,10 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   const { t, lang } = useT();
+  const { profile, photo } = useAuth();
   const money = useMoney();
   const { vaults, txs, goals, settings } = useZad();
+  const who = profile?.display_name || settings.name;
   const [form, setForm] = useState<null | "income" | "expense">(null);
   const total = vaults.reduce((a, v) => a + v.balance, 0);
 
@@ -53,10 +56,10 @@ function Dashboard() {
     <>
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="grid size-11 place-items-center rounded-2xl bg-gold font-display text-lg font-bold text-primary-foreground shadow-glow">{(settings.name || t.appName).charAt(0)}</div>
+          <div className="grid size-11 place-items-center rounded-2xl bg-gold font-display text-lg font-bold text-primary-foreground shadow-glow">{photo ? <img src={photo} alt="" referrerPolicy="no-referrer" className="size-full rounded-2xl object-cover" /> : (who || t.appName).charAt(0)}</div>
           <div>
-            <p className="text-xs text-muted-foreground">{t.hello}{settings.name ? "،" : ""}</p>
-            <p className="font-display font-semibold">{settings.name || t.appName}</p>
+            <p className="text-xs text-muted-foreground">{t[greetingKey()]}{who ? (lang === "ar" ? "،" : ",") : ""}</p>
+            <p className="font-display font-semibold">{who || t.appName} 👋</p>
           </div>
         </div>
         <span className="font-display text-2xl font-bold text-gold">{t.appName}</span>

@@ -4,12 +4,13 @@ import { ChevronLeft, Coins, Download, Globe, LogOut, Trash2, Upload, User as Us
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Picker } from "@/components/zad/Picker";
-import { useAuth } from "@/lib/auth";
+import { useAuth, fileToAvatar } from "@/lib/auth";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useT, LANG_CODES, langName, nativeName } from "@/lib/i18n";
 import { CURRENCIES, currencyName, useZad } from "@/lib/store";
-import { Field, Modal, PageTitle, inputCls } from "@/components/zad/ui";
+import { Modal, PageTitle, inputCls } from "@/components/zad/ui";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -32,7 +33,13 @@ function Page() {
   const [langOpen, setLangOpen] = useState(false);
   const [curOpen, setCurOpen] = useState(false);
   const { lang } = useT();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, photo, hasGoogle, updateProfile, signOut } = useAuth();
+  const photoRef = useRef<HTMLInputElement>(null);
+  const onPhoto = async (f: File) => {
+    if (!f.type.startsWith("image/") || f.size > 10 * 1024 * 1024) return;
+    const url = await fileToAvatar(f);
+    (await updateProfile({ avatar_url: url, use_google_avatar: false })) ? toast.success(t.done) : toast.error(t.authError);
+  };
   const langItems = useMemo(() => LANG_CODES.map((c) => ({ value: c, label: nativeName(c), sub: langName(c, lang) })).sort((a, b) => (a.sub ?? "").localeCompare(b.sub ?? "")), [lang]);
   const curItems = useMemo(() => CURRENCIES.map((c) => ({ value: c, label: `${c} — ${currencyName(c, lang)}` })), [lang]);
 
@@ -58,27 +65,36 @@ function Page() {
 
       <div className="mt-4 space-y-3">
         <section className="rounded-2xl border border-border bg-card p-4">
-          {user ? (
             <div className="flex items-center gap-3">
               <Link to="/auth" className="flex min-w-0 flex-1 items-center gap-3">
                 <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full bg-muted">
-                  {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="size-full object-cover" /> : <UserIcon className="size-5 text-muted-foreground" />}
+                  {photo ? <img src={photo} referrerPolicy="no-referrer" alt="" className="size-full object-cover" /> : <UserIcon className="size-5 text-muted-foreground" />}
                 </span>
                 <span className="min-w-0">
                   <span className="block truncate font-semibold">{profile?.display_name || t.profile}</span>
-                  <span className="block truncate text-xs text-muted-foreground" dir="ltr">{user.email}</span>
+                  <span className="block truncate text-xs text-muted-foreground" dir="ltr">{user?.email}</span>
                 </span>
               </Link>
               <Button size="icon" variant="soft" aria-label={t.signOut} onClick={() => { void signOut(); toast.success(t.done); }}><LogOut className="size-4" /></Button>
             </div>
-          ) : (
-            <Button asChild variant="gold" className="w-full"><Link to="/auth">{t.signInGoogle}</Link></Button>
+        </section>
+        <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
+          <h2 className="font-semibold">{t.photoSetting}</h2>
+          {hasGoogle && (
+            <label className="flex items-center justify-between gap-3 text-sm">
+              <span>{t.useGooglePhoto}</span>
+              <Switch checked={profile?.use_google_avatar ?? true} onCheckedChange={(v) => void updateProfile({ use_google_avatar: v })} />
+            </label>
           )}
+          {!(hasGoogle && (profile?.use_google_avatar ?? true)) && (
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="soft" onClick={() => photoRef.current?.click()}><Upload className="size-4" /> {t.uploadPhoto}</Button>
+              <Button variant="soft" className="text-destructive" disabled={!profile?.avatar_url} onClick={() => void updateProfile({ avatar_url: null })}>{t.removePhoto}</Button>
+            </div>
+          )}
+          <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); e.target.value = ""; }} />
         </section>
         <section className="space-y-4 rounded-2xl border border-border bg-card p-4">
-          <Field label={t.yourName}>
-            <input value={settings.name} onChange={(e) => setSettings({ name: e.target.value })} className={inputCls} maxLength={40} />
-          </Field>
           <button onClick={() => setCurOpen(true)} className={`${inputCls} flex items-center justify-between`}>
             <span className="flex items-center gap-2"><Coins className="size-4 text-primary" /> {t.currency}</span>
             <span className="flex items-center gap-1 text-muted-foreground">{settings.currency} <ChevronLeft className="size-4 ltr:rotate-180" /></span>
