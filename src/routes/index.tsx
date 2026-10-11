@@ -25,9 +25,9 @@ export const Route = createFileRoute("/")({
 function Dashboard() {
   const { t, lang } = useT();
   const { profile, photo } = useAuth();
-  const who = profile?.display_name || settings.name;
   const money = useMoney();
   const { vaults, txs, goals, settings } = useZad();
+  const who = profile?.display_name || settings.name;
   const [form, setForm] = useState<null | "income" | "expense">(null);
   const total = vaults.reduce((a, v) => a + v.balance, 0);
 

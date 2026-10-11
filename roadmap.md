@@ -1,3 +1,3 @@
 - [x] Login-first screen (email + Google, create account with name/photo)
 - [x] Settings photo source (Gmail auto / manual)
-- [ ] Time-based greeting with user name on home
+- [x] Time-based greeting with user name on home
