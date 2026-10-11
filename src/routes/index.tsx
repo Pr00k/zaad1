@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Target, Wallet, Receipt } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { useT } from "@/lib/i18n";
+import { useT, greetingKey } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { useMoney, useZad } from "@/lib/store";
 import { localDateStr } from "@/lib/reminders";
 import { TxForm } from "@/components/zad/forms";
@@ -23,6 +24,8 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   const { t, lang } = useT();
+  const { profile, photo } = useAuth();
+  const who = profile?.display_name || settings.name;
   const money = useMoney();
   const { vaults, txs, goals, settings } = useZad();
   const [form, setForm] = useState<null | "income" | "expense">(null);
