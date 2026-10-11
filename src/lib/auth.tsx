@@ -17,6 +17,12 @@ function useAuthState() {
   const loadProfile = async (u: User | null) => {
     if (!u) { setProfile(null); return; }
     const { data } = await supabase.from("profiles").select("id, display_name, avatar_url, use_google_avatar").eq("id", u.id).maybeSingle();
+    const pending = localStorage.getItem("zad-pending-avatar");
+    if (pending && data && !data.avatar_url) {
+      localStorage.removeItem("zad-pending-avatar");
+      await supabase.from("profiles").update({ avatar_url: pending, use_google_avatar: false }).eq("id", u.id);
+      data.avatar_url = pending; data.use_google_avatar = false;
+    }
     setProfile(data ?? { id: u.id, display_name: (u.user_metadata?.["full_name"] as string) ?? null, avatar_url: null, use_google_avatar: true });
   };
 

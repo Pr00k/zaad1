@@ -61,8 +61,9 @@ export function AuthScreen() {
       email: p.data.email, password: p.data.password,
       options: { emailRedirectTo: window.location.origin, data: { full_name: p.data.name } },
     });
-    if (!error && data.user && data.session && avatar) {
-      await supabase.from("profiles").upsert({ id: data.user.id, display_name: p.data.name, avatar_url: avatar, use_google_avatar: false });
+    if (!error && avatar) {
+      if (data.user && data.session) await supabase.from("profiles").upsert({ id: data.user.id, display_name: p.data.name, avatar_url: avatar, use_google_avatar: false });
+      else localStorage.setItem("zad-pending-avatar", avatar);
     }
     setBusy(false);
     if (error) { toast.error(error.message); return; }
