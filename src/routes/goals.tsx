@@ -11,10 +11,12 @@ import { Empty, Field, Modal, PageTitle, inputCls, vaultName } from "@/component
 export const Route = createFileRoute("/goals")({
   head: () => ({
     meta: [
-      { title: "زاد — الأهداف" },
-      { name: "description", content: "أهدافك المالية وتقدمك نحوها." },
-      { property: "og:title", content: "زاد — الأهداف" },
-      { property: "og:description", content: "أهدافك المالية وتقدمك نحوها." },
+      { title: "زاد — الأهداف المالية" },
+      { name: "description", content: "تابع مدّخراتك وتقدّمك نحو تحقيق أهدافك المالية." },
+      { property: "og:title", content: "زاد — الأهداف المالية" },
+      { property: "og:description", content: "تابع مدّخراتك وتقدّمك نحو تحقيق أهدافك المالية." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Page,

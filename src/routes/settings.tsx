@@ -16,9 +16,11 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "زاد — الإعدادات" },
-      { name: "description", content: "الاسم، العملة، اللغة، والنسخ الاحتياطي لبياناتك." },
+      { name: "description", content: "إدارة الحساب والصورة الشخصية واللغة والعملة والنسخ الاحتياطية." },
       { property: "og:title", content: "زاد — الإعدادات" },
-      { property: "og:description", content: "الاسم، العملة، اللغة، والنسخ الاحتياطي لبياناتك." },
+      { property: "og:description", content: "إدارة الحساب والصورة الشخصية واللغة والعملة والنسخ الاحتياطية." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Page,
@@ -56,7 +58,7 @@ function Page() {
 
   const onImport = async (file: File) => {
     const ok = importData(await file.text());
-    ok ? toast.success(t.done) : toast.error(t.invalidAmount);
+    ok ? toast.success(t.done) : toast.error(t.invalidBackup);
   };
 
   return (

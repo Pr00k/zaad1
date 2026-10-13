@@ -13,10 +13,12 @@ import { Empty, Section, vaultName } from "@/components/zad/ui";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "زاد — لوحة أموالك" },
-      { name: "description", content: "رصيدك الكلي، نمو آخر 7 أيام، خزائنك وأهدافك في مكان واحد." },
-      { property: "og:title", content: "زاد — لوحة أموالك" },
-      { property: "og:description", content: "رصيدك الكلي وخزائنك وأهدافك في مكان واحد." },
+      { title: "زاد — نظرة مالية شاملة" },
+      { name: "description", content: "تابع إجمالي رصيدك ودخلك ومصروفاتك وخزائنك وأهدافك المالية." },
+      { property: "og:title", content: "زاد — نظرة مالية شاملة" },
+      { property: "og:description", content: "تابع إجمالي رصيدك ودخلك ومصروفاتك وخزائنك وأهدافك المالية." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Dashboard,

@@ -12,10 +12,12 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/expenses")({
   head: () => ({
     meta: [
-      { title: "زاد — العمليات" },
-      { name: "description", content: "كل عمليات الدخل والمصروف مع بحث وتصفية." },
-      { property: "og:title", content: "زاد — العمليات" },
-      { property: "og:description", content: "كل عمليات الدخل والمصروف مع بحث وتصفية." },
+      { title: "زاد — المعاملات المالية" },
+      { name: "description", content: "تابع معاملات الدخل والمصروفات وإيداعات الأهداف مع البحث والتصفية." },
+      { property: "og:title", content: "زاد — المعاملات المالية" },
+      { property: "og:description", content: "تابع معاملات الدخل والمصروفات وإيداعات الأهداف مع البحث والتصفية." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Page,
@@ -44,7 +46,7 @@ function Page() {
 
   return (
     <>
-      <PageTitle title={t.recent} />
+      <PageTitle title={t.activity} />
 
       <div className="mt-4 flex gap-2">
         <Button variant="gold" size="sm" className="flex-1" onClick={() => setForm("income")}>

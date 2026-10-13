@@ -10,10 +10,12 @@ import { Empty, Field, Modal, PageTitle, inputCls, vaultName } from "@/component
 export const Route = createFileRoute("/vaults")({
   head: () => ({
     meta: [
-      { title: "زاد — الخزائن" },
-      { name: "description", content: "إدارة خزائنك ونسب توزيع الدخل عليها." },
-      { property: "og:title", content: "زاد — الخزائن" },
-      { property: "og:description", content: "إدارة خزائنك ونسب توزيع الدخل عليها." },
+      { title: "زاد — الخزائن وصندوق الطوارئ" },
+      { name: "description", content: "نظّم خزائنك وصندوق الطوارئ وحدّد نسب توزيع دخلك." },
+      { property: "og:title", content: "زاد — الخزائن وصندوق الطوارئ" },
+      { property: "og:description", content: "نظّم خزائنك وصندوق الطوارئ وحدّد نسب توزيع دخلك." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Page,
