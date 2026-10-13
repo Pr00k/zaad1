@@ -22,7 +22,14 @@ export const DEFAULT_VAULTS: Vault[] = [
   { id: "learning", key: "learning", name: "", pct: 10, balance: 0, color: "var(--chart-4)" },
   { id: "lifestyle", key: "lifestyle", name: "", pct: 10, balance: 0, color: "var(--chart-5)" },
   { id: "giving", key: "giving", name: "", pct: 5, balance: 0, color: "var(--chart-6)" },
+  { id: "emergency", key: "emergency", name: "", pct: 0, balance: 0, color: "var(--chart-3)" },
 ];
+
+export function addEmergencyVault(vaults: Vault[]): Vault[] {
+  if (vaults.some((v) => v.id === "emergency" || v.key === "emergency")) return vaults;
+  const emergency = DEFAULT_VAULTS.find((v) => v.id === "emergency");
+  return emergency ? [...vaults, { ...emergency }] : vaults;
+}
 
 type Result = { ok: true } | { ok: false; error: "insufficient" | "invalidAmount" };
 
@@ -165,7 +172,15 @@ export const useZad = create<State>()(
       },
       reset() { set({ ...initial(), settings: { ...initial().settings, lang: get().settings.lang } }); },
     }),
-    { name: "zad-v4", storage: createJSONStorage(() => localStorage), skipHydration: true, version: 1 },
+    {
+      name: "zad-v4", storage: createJSONStorage(() => localStorage), skipHydration: true, version: 2,
+      migrate: (persisted, version) => {
+        const state = persisted as Partial<State>;
+        return version < 2 && Array.isArray(state.vaults)
+          ? { ...state, vaults: addEmergencyVault(state.vaults) }
+          : state;
+      },
+    },
   ),
 );
 

@@ -1,3 +1,6 @@
 - [x] Login-first screen (email + Google, create account with name/photo)
 - [x] Settings photo source (Gmail auto / manual)
 - [x] Time-based greeting with user name on home
+- [ ] Refine Arabic and English wording across the application
+- [ ] Add an emergency fund without altering existing balances or allocation percentages
+- [ ] Verify emergency saving and spending, persistence, and page wording

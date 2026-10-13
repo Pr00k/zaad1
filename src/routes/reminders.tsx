@@ -13,9 +13,11 @@ export const Route = createFileRoute("/reminders")({
   head: () => ({
     meta: [
       { title: "زاد — التذكيرات" },
-      { name: "description", content: "تذكيراتك بمواعيد المهام والأهداف مع صوت واهتزاز." },
+      { name: "description", content: "نظّم مواعيدك وتذكيرات أهدافك مع خيارات التكرار والتنبيه." },
       { property: "og:title", content: "زاد — التذكيرات" },
-      { property: "og:description", content: "تذكيراتك بمواعيد المهام والأهداف مع صوت واهتزاز." },
+      { property: "og:description", content: "نظّم مواعيدك وتذكيرات أهدافك مع خيارات التكرار والتنبيه." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Page,
@@ -98,7 +100,7 @@ function Page() {
               toast.success(t.done);
             }}
           >
-            <Field label={t.name}>
+            <Field label={t.reminderTitle}>
               <input autoFocus value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className={inputCls} maxLength={80} required />
             </Field>
             <div className="grid grid-cols-2 gap-3">

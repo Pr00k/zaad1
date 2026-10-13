@@ -10,10 +10,12 @@ import { Empty, Field, Modal, PageTitle, inputCls, vaultName } from "@/component
 export const Route = createFileRoute("/vaults")({
   head: () => ({
     meta: [
-      { title: "زاد — الخزائن" },
-      { name: "description", content: "إدارة خزائنك ونسب توزيع الدخل عليها." },
-      { property: "og:title", content: "زاد — الخزائن" },
-      { property: "og:description", content: "إدارة خزائنك ونسب توزيع الدخل عليها." },
+      { title: "زاد — الخزائن وصندوق الطوارئ" },
+      { name: "description", content: "نظّم خزائنك وصندوق الطوارئ وحدّد نسب توزيع دخلك." },
+      { property: "og:title", content: "زاد — الخزائن وصندوق الطوارئ" },
+      { property: "og:description", content: "نظّم خزائنك وصندوق الطوارئ وحدّد نسب توزيع دخلك." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Page,
@@ -52,7 +54,7 @@ function Page() {
   return (
     <>
       <PageTitle title={t.vaults} action={
-        <Button variant="gold" size="sm" onClick={() => setEditing({ color: COLORS[vaults.length % COLORS.length] ?? COLORS[0]! })}>
+        <Button variant="gold" size="sm" onClick={() => setEditing({ color: COLORS[vaults.length % COLORS.length] ?? "var(--chart-1)" })}>
           <Plus className="size-4" /> {t.addVault}
         </Button>
       } />
@@ -137,7 +139,7 @@ function Page() {
         )}
       </Modal>
 
-      {vaults.length === 0 && <Empty icon={<Wallet className="size-5" />} text={t.noTx} />}
+      {vaults.length === 0 && <Empty icon={<Wallet className="size-5" />} text={t.noVaults} />}
     </>
   );
 }
