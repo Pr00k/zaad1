@@ -11,7 +11,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 const NAV = [
   { to: "/", icon: Home, k: "home" },
   { to: "/vaults", icon: Wallet, k: "vaults" },
-  { to: "/expenses", icon: Receipt, k: "expense" },
+  { to: "/expenses", icon: Receipt, k: "activity" },
   { to: "/goals", icon: Target, k: "goals" },
   { to: "/reminders", icon: Bell, k: "reminders" },
   { to: "/settings", icon: Settings, k: "settings" },

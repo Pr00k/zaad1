@@ -52,7 +52,7 @@ function Page() {
   return (
     <>
       <PageTitle title={t.vaults} action={
-        <Button variant="gold" size="sm" onClick={() => setEditing({ color: COLORS[vaults.length % COLORS.length] ?? COLORS[0]! })}>
+        <Button variant="gold" size="sm" onClick={() => setEditing({ color: COLORS[vaults.length % COLORS.length] ?? "var(--chart-1)" })}>
           <Plus className="size-4" /> {t.addVault}
         </Button>
       } />
@@ -137,7 +137,7 @@ function Page() {
         )}
       </Modal>
 
-      {vaults.length === 0 && <Empty icon={<Wallet className="size-5" />} text={t.noTx} />}
+      {vaults.length === 0 && <Empty icon={<Wallet className="size-5" />} text={t.noVaults} />}
     </>
   );
 }
