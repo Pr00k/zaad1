@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, inputCls } from "./ui";
 import { useT } from "@/lib/i18n";
 import { useZad } from "@/lib/store";
-import { fileToAvatar } from "@/lib/auth";
+import { fileToAvatar, useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
@@ -29,6 +29,7 @@ const schema = z.object({
 
 export function AuthScreen() {
   const { t } = useT();
+  const { setGuest } = useAuth();
   const setSettings = useZad((s) => s.setSettings);
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
@@ -114,6 +115,11 @@ export function AuthScreen() {
         <Button type="button" size="lg" variant="soft" className="w-full gap-3" onClick={google} disabled={busy}>
           <GoogleIcon /> {t.signInGoogle}
         </Button>
+
+        <Button type="button" size="lg" variant="ghost" className="w-full text-muted-foreground" onClick={() => setGuest(true)} disabled={busy}>
+          {t.skip}
+        </Button>
+        <p className="text-center text-xs leading-relaxed text-muted-foreground">{t.guestHint}</p>
       </form>
 
       <div className="text-center text-sm">

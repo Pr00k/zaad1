@@ -9,10 +9,19 @@ function googlePhoto(u: User | null): string | null {
   return (m["avatar_url"] as string) || (m["picture"] as string) || null;
 }
 
+const GUEST_KEY = "zad-guest";
+const readGuest = () => { try { return localStorage.getItem(GUEST_KEY) === "1"; } catch { return false; } };
+
 function useAuthState() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [guest, setGuestState] = useState(false);
+
+  const setGuest = (v: boolean) => {
+    try { if (v) localStorage.setItem(GUEST_KEY, "1"); else localStorage.removeItem(GUEST_KEY); } catch { /* ignore */ }
+    setGuestState(v);
+  };
 
   const loadProfile = async (u: User | null) => {
     if (!u) { setProfile(null); return; }
@@ -27,13 +36,16 @@ function useAuthState() {
   };
 
   useEffect(() => {
+    setGuestState(readGuest());
     const { data: sub } = supabase.auth.onAuthStateChange((e, session) => {
       if (e === "TOKEN_REFRESHED") return;
       const u = session?.user ?? null;
+      if (u) setGuest(false);
       setUser(u);
       setTimeout(() => void loadProfile(u), 0);
     });
     supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) setGuest(false);
       setUser(data.user);
       await loadProfile(data.user);
       setLoading(false);
@@ -52,7 +64,7 @@ function useAuthState() {
   const hasGoogle = !!googlePhoto(user);
   const photo = profile?.use_google_avatar && hasGoogle ? googlePhoto(user) : profile?.avatar_url ?? null;
 
-  return { user, profile, loading, photo, hasGoogle, updateProfile, signOut: () => supabase.auth.signOut() };
+  return { user, profile, loading, photo, hasGoogle, guest, setGuest, updateProfile, signOut: () => supabase.auth.signOut() };
 }
 
 type Ctx = ReturnType<typeof useAuthState>;

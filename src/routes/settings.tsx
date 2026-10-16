@@ -35,7 +35,7 @@ function Page() {
   const [langOpen, setLangOpen] = useState(false);
   const [curOpen, setCurOpen] = useState(false);
   const { lang } = useT();
-  const { user, profile, photo, hasGoogle, updateProfile, signOut } = useAuth();
+  const { user, guest, setGuest, profile, photo, hasGoogle, updateProfile, signOut } = useAuth();
   const photoRef = useRef<HTMLInputElement>(null);
   const onPhoto = async (f: File) => {
     if (!f.type.startsWith("image/") || f.size > 10 * 1024 * 1024) return;
@@ -67,6 +67,7 @@ function Page() {
 
       <div className="mt-4 space-y-3">
         <section className="rounded-2xl border border-border bg-card p-4">
+          {user ? (
             <div className="flex items-center gap-3">
               <Link to="/auth" className="flex min-w-0 flex-1 items-center gap-3">
                 <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full bg-muted">
@@ -74,12 +75,25 @@ function Page() {
                 </span>
                 <span className="min-w-0">
                   <span className="block truncate font-semibold">{profile?.display_name || t.profile}</span>
-                  <span className="block truncate text-xs text-muted-foreground" dir="ltr">{user?.email}</span>
+                  <span className="block truncate text-xs text-muted-foreground" dir="ltr">{user.email}</span>
                 </span>
               </Link>
               <Button size="icon" variant="soft" aria-label={t.signOut} onClick={() => { void signOut(); toast.success(t.done); }}><LogOut className="size-4" /></Button>
             </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-muted"><UserIcon className="size-5 text-muted-foreground" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">{t.guestMode}</span>
+                <span className="block text-xs leading-relaxed text-muted-foreground">{t.guestHint}</span>
+              </span>
+            </div>
+          )}
+          {!user && (
+            <Button variant="gold" size="lg" className="mt-3 w-full" onClick={() => setGuest(false)}>{t.signIn}</Button>
+          )}
         </section>
+        {user && (
         <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
           <h2 className="font-semibold">{t.photoSetting}</h2>
           {hasGoogle && (
@@ -96,6 +110,7 @@ function Page() {
           )}
           <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); e.target.value = ""; }} />
         </section>
+        )}
         <section className="space-y-4 rounded-2xl border border-border bg-card p-4">
           <button onClick={() => setCurOpen(true)} className={`${inputCls} flex items-center justify-between`}>
             <span className="flex items-center gap-2"><Coins className="size-4 text-primary" /> {t.currency}</span>

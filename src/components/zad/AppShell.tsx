@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 function Shell({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, guest } = useAuth();
   const [ready, setReady] = useState(false);
   useEffect(() => {
     Promise.resolve(useZad.persist.rehydrate()).then(() => setReady(true));
@@ -42,9 +42,9 @@ function Shell({ children }: { children: ReactNode }) {
         <div className="animate-orb absolute bottom-24 -start-20 size-64 rounded-full bg-chart-2/15 blur-3xl [animation-delay:-5s]" />
       </div>
       <main className="relative z-10 flex-1 px-4 pb-28 pt-[max(env(safe-area-inset-top),1rem)]">
-        {ready && !loading ? (user ? children : <AuthScreen />) : <div className="grid h-[60dvh] place-items-center"><div className="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}
+        {ready && !loading ? (user || guest ? children : <AuthScreen />) : <div className="grid h-[60dvh] place-items-center"><div className="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}
       </main>
-      {user && <nav className="glass fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-border px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2">
+      {(user || guest) && <nav className="glass fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-border px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2">
         <ul className="grid grid-cols-6">
           {NAV.map(({ to, icon: Icon, k }) => {
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
@@ -59,7 +59,7 @@ function Shell({ children }: { children: ReactNode }) {
           })}
         </ul>
       </nav>}
-      {ready && user && <ReminderEngine />}
+      {(user || guest) && ready && <ReminderEngine />}
     </div>
   );
 }
