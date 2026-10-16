@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, inputCls } from "./ui";
 import { useT } from "@/lib/i18n";
 import { useZad } from "@/lib/store";
-import { fileToAvatar } from "@/lib/auth";
+import { fileToAvatar, useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
