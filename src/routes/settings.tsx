@@ -110,6 +110,7 @@ function Page() {
           )}
           <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); e.target.value = ""; }} />
         </section>
+        )}
         <section className="space-y-4 rounded-2xl border border-border bg-card p-4">
           <button onClick={() => setCurOpen(true)} className={`${inputCls} flex items-center justify-between`}>
             <span className="flex items-center gap-2"><Coins className="size-4 text-primary" /> {t.currency}</span>
