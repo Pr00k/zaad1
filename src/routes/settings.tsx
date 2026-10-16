@@ -35,7 +35,7 @@ function Page() {
   const [langOpen, setLangOpen] = useState(false);
   const [curOpen, setCurOpen] = useState(false);
   const { lang } = useT();
-  const { user, profile, photo, hasGoogle, updateProfile, signOut } = useAuth();
+  const { user, guest, setGuest, profile, photo, hasGoogle, updateProfile, signOut } = useAuth();
   const photoRef = useRef<HTMLInputElement>(null);
   const onPhoto = async (f: File) => {
     if (!f.type.startsWith("image/") || f.size > 10 * 1024 * 1024) return;
