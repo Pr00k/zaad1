@@ -9,10 +9,19 @@ function googlePhoto(u: User | null): string | null {
   return (m["avatar_url"] as string) || (m["picture"] as string) || null;
 }
 
+const GUEST_KEY = "zad-guest";
+const readGuest = () => { try { return localStorage.getItem(GUEST_KEY) === "1"; } catch { return false; } };
+
 function useAuthState() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [guest, setGuestState] = useState(false);
+
+  const setGuest = (v: boolean) => {
+    try { if (v) localStorage.setItem(GUEST_KEY, "1"); else localStorage.removeItem(GUEST_KEY); } catch { /* ignore */ }
+    setGuestState(v);
+  };
 
   const loadProfile = async (u: User | null) => {
     if (!u) { setProfile(null); return; }
