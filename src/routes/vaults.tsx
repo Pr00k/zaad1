@@ -4,7 +4,7 @@ import { Pencil, Plus, Trash2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
-import { useMoney, useZad, type Vault } from "@/lib/store";
+import { rebalancePcts, useMoney, useZad, type Vault } from "@/lib/store";
 import { Empty, Field, Modal, PageTitle, inputCls, vaultName } from "@/components/zad/ui";
 
 export const Route = createFileRoute("/vaults")({
@@ -90,7 +90,10 @@ function Page() {
               <span className="w-24 truncate text-xs text-muted-foreground">{vaultName(v, t)}</span>
               <input
                 type="range" min={0} max={100} value={pcts?.[v.id] ?? v.pct}
-                onChange={(e) => setLocalPcts((p) => ({ ...(p ?? Object.fromEntries(vaults.map((x) => [x.id, x.pct]))), [v.id]: Number(e.target.value) }))}
+                onChange={(e) => setLocalPcts((p) => {
+                  const cur = vaults.map((x) => ({ ...x, pct: p?.[x.id] ?? x.pct }));
+                  return Object.fromEntries(rebalancePcts(cur, v.id, Number(e.target.value)).map((x) => [x.id, x.pct]));
+                })}
                 className="flex-1 accent-[var(--primary)]"
               />
               <span className="w-10 text-end font-display text-sm">{pcts?.[v.id] ?? v.pct}%</span>
