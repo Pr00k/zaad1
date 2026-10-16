@@ -115,6 +115,11 @@ export function AuthScreen() {
         <Button type="button" size="lg" variant="soft" className="w-full gap-3" onClick={google} disabled={busy}>
           <GoogleIcon /> {t.signInGoogle}
         </Button>
+
+        <Button type="button" size="lg" variant="ghost" className="w-full text-muted-foreground" onClick={() => setGuest(true)} disabled={busy}>
+          {t.skip}
+        </Button>
+        <p className="text-center text-xs leading-relaxed text-muted-foreground">{t.guestHint}</p>
       </form>
 
       <div className="text-center text-sm">

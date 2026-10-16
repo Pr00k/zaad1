@@ -59,7 +59,7 @@ function Shell({ children }: { children: ReactNode }) {
           })}
         </ul>
       </nav>}
-      {ready && user && <ReminderEngine />}
+      {(user || guest) && ready && <ReminderEngine />}
     </div>
   );
 }
