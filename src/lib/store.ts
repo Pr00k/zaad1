@@ -95,9 +95,15 @@ export const useZad = create<State>()(
         set((s) => ({ txs: [tx, ...s.txs].sort((a, b) => b.createdAt - a.createdAt), vaults: applyTx(s.vaults, tx, 1) }));
       },
       saveVault(v) {
-        set((s): Partial<State> => v.id && s.vaults.some((x) => x.id === v.id)
-          ? { vaults: s.vaults.map((x): Vault => (x.id === v.id ? ({ ...x, ...v, ...(v.name ? { key: "" } : {}) } as Vault) : x)) }
-          : { vaults: [...s.vaults, { id: uid(), name: v.name ?? "", pct: v.pct ?? 0, balance: 0, color: v.color ?? "var(--chart-2)" }] });
+        set((s): Partial<State> => {
+          const id = v.id && s.vaults.some((x) => x.id === v.id) ? v.id : uid();
+          const exists = id === v.id;
+          let vaults: Vault[] = exists
+            ? s.vaults.map((x): Vault => (x.id === id ? ({ ...x, ...v, ...(v.name ? { key: "" } : {}) } as Vault) : x))
+            : [...s.vaults, { id, name: v.name ?? "", pct: 0, balance: 0, color: v.color ?? "var(--chart-2)" }];
+          if (v.pct !== undefined) vaults = rebalancePcts(vaults, id, v.pct);
+          return { vaults };
+        });
       },
       deleteVault(id) {
         set((s) => {
@@ -105,8 +111,8 @@ export const useZad = create<State>()(
           const rest = s.vaults.filter((v) => v.id !== id);
           if (!victim || rest.length === 0) return s;
           const f = rest[0]!;
-          rest[0] = { ...f, balance: r2(f.balance + victim.balance), pct: f.pct + victim.pct };
-          return { vaults: rest, goals: s.goals.map((g) => (g.vaultId === id ? { ...g, vaultId: f.id } : g)) };
+          rest[0] = { ...f, balance: r2(f.balance + victim.balance) };
+          return { vaults: distributeTo100(rest), goals: s.goals.map((g) => (g.vaultId === id ? { ...g, vaultId: f.id } : g)) };
         });
       },
       setPcts(p) { set((s) => ({ vaults: s.vaults.map((v) => ({ ...v, pct: p[v.id] ?? v.pct })) })); },
