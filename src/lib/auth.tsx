@@ -36,13 +36,16 @@ function useAuthState() {
   };
 
   useEffect(() => {
+    setGuestState(readGuest());
     const { data: sub } = supabase.auth.onAuthStateChange((e, session) => {
       if (e === "TOKEN_REFRESHED") return;
       const u = session?.user ?? null;
+      if (u) setGuest(false);
       setUser(u);
       setTimeout(() => void loadProfile(u), 0);
     });
     supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) setGuest(false);
       setUser(data.user);
       await loadProfile(data.user);
       setLoading(false);
