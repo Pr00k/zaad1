@@ -225,3 +225,29 @@ export function useMoney() {
   const loc = lang === "ar" ? "ar-IQ" : lang;
   return (n: number) => { let s: string; try { s = new Intl.NumberFormat(loc, { maximumFractionDigits: c.dec, minimumFractionDigits: 0 }).format(n); } catch { s = String(n); } return `${s} ${c.sym}`; };
 }
+
+/** Scale all vault percentages proportionally so they sum to exactly 100. */
+export function distributeTo100(vaults: Vault[]): Vault[] {
+  if (vaults.length === 0) return vaults;
+  const total = vaults.reduce((a, v) => a + Math.max(0, v.pct), 0);
+  const raw = vaults.map((v) => (total > 0 ? (Math.max(0, v.pct) / total) * 100 : 100 / vaults.length));
+  const out = raw.map(Math.floor);
+  let diff = 100 - out.reduce((a, n) => a + n, 0);
+  const order = raw.map((r, i) => [r - Math.floor(r), i] as const).sort((a, b) => b[0] - a[0]);
+  for (let k = 0; diff > 0; k = (k + 1) % order.length, diff--) out[order[k]![1]]! += 1;
+  return vaults.map((v, i) => ({ ...v, pct: out[i]! }));
+}
+
+/** Set one vault's percentage and spread the remainder proportionally across the others. */
+export function rebalancePcts(vaults: Vault[], fixedId: string, pct: number): Vault[] {
+  const p = Math.min(100, Math.max(0, Math.round(pct || 0)));
+  const others = vaults.filter((v) => v.id !== fixedId);
+  if (others.length === 0) return vaults.map((v) => ({ ...v, pct: 100 }));
+  const scaled = distributeTo100(others).map((v) => ({ ...v, pct: (v.pct * (100 - p)) / 100 }));
+  const ints = scaled.map((v) => Math.floor(v.pct));
+  let diff = 100 - p - ints.reduce((a, n) => a + n, 0);
+  const order = scaled.map((v, i) => [v.pct - Math.floor(v.pct), i] as const).sort((a, b) => b[0] - a[0]);
+  for (let k = 0; diff > 0; k = (k + 1) % order.length, diff--) ints[order[k]![1]]! += 1;
+  const map = new Map(others.map((v, i) => [v.id, ints[i]!]));
+  return vaults.map((v) => ({ ...v, pct: v.id === fixedId ? p : map.get(v.id)! }));
+}
