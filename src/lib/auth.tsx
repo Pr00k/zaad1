@@ -64,7 +64,7 @@ function useAuthState() {
   const hasGoogle = !!googlePhoto(user);
   const photo = profile?.use_google_avatar && hasGoogle ? googlePhoto(user) : profile?.avatar_url ?? null;
 
-  return { user, profile, loading, photo, hasGoogle, updateProfile, signOut: () => supabase.auth.signOut() };
+  return { user, profile, loading, photo, hasGoogle, guest, setGuest, updateProfile, signOut: () => supabase.auth.signOut() };
 }
 
 type Ctx = ReturnType<typeof useAuthState>;
