@@ -29,6 +29,7 @@ const schema = z.object({
 
 export function AuthScreen() {
   const { t } = useT();
+  const { setGuest } = useAuth();
   const setSettings = useZad((s) => s.setSettings);
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");

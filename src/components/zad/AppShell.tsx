@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 function Shell({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, guest } = useAuth();
   const [ready, setReady] = useState(false);
   useEffect(() => {
     Promise.resolve(useZad.persist.rehydrate()).then(() => setReady(true));
