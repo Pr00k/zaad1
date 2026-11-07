@@ -5,6 +5,7 @@ import { useT } from "@/lib/i18n";
 import { useMoney, useZad, type Tx } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { vaultName } from "./ui";
+import { Button } from "@/components/ui/button";
 
 export function TxRow({ tx }: { tx: Tx }) {
   const { t, lang } = useT();
@@ -25,23 +26,23 @@ export function TxRow({ tx }: { tx: Tx }) {
   };
 
   return (
-    <li className={cn("group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 transition hover:border-primary/30", eating && "animate-eat")}>
+    <li className={cn("motion-card animate-enter group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 transition hover:border-primary/30", eating && "animate-eat")}>
       <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl", tx.type === "income" ? "bg-success/15 text-success" : tx.type === "goal" ? "bg-accent text-primary" : "bg-destructive/15 text-destructive")}>
         <Icon className="size-5" />
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{label}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {tx.vaultId ? vaultName(vault, t) : t.splitAuto.split(" ").slice(0, 2).join(" ")} · {new Date(tx.date).toLocaleDateString(lang === "ar" ? "ar-IQ" : lang, { day: "numeric", month: "short" })}
+          {tx.vaultId ? vaultName(vault, t) : tx.type === "expense" ? t.allVaults : t.splitAuto} · {new Date(tx.date).toLocaleDateString(lang === "ar" ? "ar-IQ" : lang, { day: "numeric", month: "short" })}
         </p>
       </div>
       <span className={cn("font-display text-sm font-semibold", tx.type === "income" ? "text-success" : "text-foreground")}>
         {tx.type === "income" ? "+" : "−"}{money(tx.amount)}
       </span>
       {tx.type !== "goal" && (
-        <button onClick={remove} aria-label={t.delete} className="grid size-8 place-items-center rounded-lg text-muted-foreground opacity-60 transition hover:bg-destructive/15 hover:text-destructive group-hover:opacity-100">
+        <Button variant="ghost" size="icon" disabled={eating} onClick={remove} title={t.delete} aria-label={t.delete} className="size-10 text-muted-foreground opacity-60 hover:bg-destructive/15 hover:text-destructive group-hover:opacity-100">
           <Trash2 className="size-4" />
-        </button>
+        </Button>
       )}
     </li>
   );

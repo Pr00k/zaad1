@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { computeNext, localDateStr, type Repeat, type Unit } from "./reminders";
+import { allocateAmount } from "./allocation";
+import { snapshotSchema } from "./sync-schema";
 
 export type Currency = string;
 export interface Vault { id: string; key?: string; name: string; pct: number; balance: number; color: string }
-export interface Tx { id: string; type: "income" | "expense" | "goal"; amount: number; note: string; date: string; vaultId: string | null; createdAt: number }
+export interface Tx { id: string; type: "income" | "expense" | "goal"; amount: number; note: string; date: string; vaultId: string | null; createdAt: number; allocations?: { vaultId: string; amount: number }[] }
 export interface Goal { id: string; name: string; target: number; saved: number; deadline: string; vaultId: string; createdAt: number }
 export interface Reminder {
   id: string; title: string; date: string; time: string; repeat: Repeat; intervalValue: number; intervalUnit: Unit;
@@ -31,7 +33,7 @@ export function addEmergencyVault(vaults: Vault[]): Vault[] {
   return emergency ? [...vaults, { ...emergency }] : vaults;
 }
 
-type Result = { ok: true } | { ok: false; error: "insufficient" | "invalidAmount" };
+type Result = { ok: true } | { ok: false; error: "insufficient" | "insufficientAll" | "invalidAmount" };
 
 interface State {
   vaults: Vault[]; txs: Tx[]; goals: Goal[]; reminders: Reminder[]; settings: Settings;
@@ -55,7 +57,7 @@ interface State {
   reset(): void;
 }
 
-const initial = () => ({
+export const initial = () => ({
   vaults: DEFAULT_VAULTS.map((v) => ({ ...v })), txs: [] as Tx[], goals: [] as Goal[], reminders: [] as Reminder[],
   settings: { name: "", currency: "IQD", lang: "ar" } as Settings,
 });
@@ -65,18 +67,27 @@ export const useZad = create<State>()(
     (set, get) => ({
       ...initial(),
       addIncome(amount, note, date, vaultId) {
-        if (!(amount > 0)) return { ok: false, error: "invalidAmount" };
+        if (!Number.isFinite(amount) || Math.round(amount * 100) <= 0) return { ok: false, error: "invalidAmount" };
+        amount = r2(amount);
         set((s) => {
-          const total = s.vaults.reduce((a, v) => a + v.pct, 0) || 1;
-          const vaults = s.vaults.map((v) =>
-            vaultId ? (v.id === vaultId ? { ...v, balance: r2(v.balance + amount) } : v)
-              : { ...v, balance: r2(v.balance + (amount * v.pct) / total) });
-          return { vaults, txs: [{ id: uid(), type: "income", amount, note, date, vaultId, createdAt: Date.now() }, ...s.txs] };
+          const allocations = vaultId ? [{ vaultId, amount }] : allocateAmount(amount, s.vaults);
+          const vaults = s.vaults.map((v) => ({ ...v, balance: r2(v.balance + (allocations.find((a) => a.vaultId === v.id)?.amount ?? 0)) }));
+          return { vaults, txs: [{ id: uid(), type: "income", amount, note, date, vaultId, allocations, createdAt: Date.now() }, ...s.txs] };
         });
         return { ok: true };
       },
       addExpense(amount, note, date, vaultId) {
-        if (!(amount > 0)) return { ok: false, error: "invalidAmount" };
+        if (!Number.isFinite(amount) || Math.round(amount * 100) <= 0) return { ok: false, error: "invalidAmount" };
+        amount = r2(amount);
+        if (vaultId === "all") {
+          const allocations = allocateAmount(amount, get().vaults);
+          if (!allocations.length || allocations.some((a) => (get().vaults.find((v) => v.id === a.vaultId)?.balance ?? 0) < a.amount)) return { ok: false, error: "insufficientAll" };
+          set((s) => ({
+            vaults: s.vaults.map((v) => ({ ...v, balance: r2(v.balance - (allocations.find((a) => a.vaultId === v.id)?.amount ?? 0)) })),
+            txs: [{ id: uid(), type: "expense", amount, note, date, vaultId: null, allocations, createdAt: Date.now() }, ...s.txs],
+          }));
+          return { ok: true };
+        }
         const v = get().vaults.find((x) => x.id === vaultId);
         if (!v || v.balance < amount) return { ok: false, error: "insufficient" };
         set((s) => ({
@@ -170,9 +181,9 @@ export const useZad = create<State>()(
       setSettings(p) { set((s) => ({ settings: { ...s.settings, ...p } })); },
       importData(json) {
         try {
-          const d = JSON.parse(json);
-          if (!Array.isArray(d.vaults) || !Array.isArray(d.txs)) return false;
-          set({ vaults: d.vaults, txs: d.txs, goals: d.goals ?? [], reminders: d.reminders ?? [], settings: { ...get().settings, ...d.settings } });
+          const raw = JSON.parse(json);
+          const d = snapshotSchema.parse({ ...raw, goals: raw.goals ?? [], reminders: raw.reminders ?? [], settings: { ...get().settings, ...raw.settings } });
+          set(d);
           return true;
         } catch { return false; }
       },
@@ -193,6 +204,7 @@ export const useZad = create<State>()(
 function applyTx(vaults: Vault[], tx: Tx, sign: 1 | -1): Vault[] {
   if (tx.type === "goal") return vaults; // goal deposits are reversed via goal deletion
   const dir = tx.type === "income" ? sign : -sign;
+  if (tx.allocations) return vaults.map((v) => ({ ...v, balance: r2(v.balance + dir * (tx.allocations?.find((a) => a.vaultId === v.id)?.amount ?? 0)) }));
   if (tx.vaultId) return vaults.map((v) => (v.id === tx.vaultId ? { ...v, balance: r2(v.balance + dir * tx.amount) } : v));
   const total = vaults.reduce((a, v) => a + v.pct, 0) || 1;
   return vaults.map((v) => ({ ...v, balance: r2(v.balance + (dir * tx.amount * v.pct) / total) }));

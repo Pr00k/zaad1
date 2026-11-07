@@ -36,6 +36,7 @@ export function TxForm({ type, open, onOpenChange }: { type: "income" | "expense
         <Field label={t.vault}>
           <select value={vaultId} onChange={(e) => setVaultId(e.target.value)} className={inputCls}>
             {type === "income" && <option value="auto">{t.splitAuto}</option>}
+            {type === "expense" && <option value="all">{t.allVaults} — {money(vaults.reduce((sum, v) => sum + v.balance, 0))}</option>}
             {vaults.map((v) => (
               <option key={v.id} value={v.id}>{vaultName(v, t)} — {money(v.balance)}</option>
             ))}
