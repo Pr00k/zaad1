@@ -61,7 +61,7 @@ function Page() {
 
       <div className="mt-4 space-y-2.5">
         {vaults.map((v) => (
-          <div key={v.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5">
+          <div key={v.id} className="motion-card animate-enter flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5">
             <span className="size-3 shrink-0 rounded-full" style={{ background: v.color }} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{vaultName(v, t)}</p>

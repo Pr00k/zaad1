@@ -7,6 +7,7 @@ import { useT } from "@/lib/i18n";
 import { useMoney, useZad, type Goal } from "@/lib/store";
 import { localDateStr } from "@/lib/reminders";
 import { Empty, Field, Modal, PageTitle, inputCls, vaultName } from "@/components/zad/ui";
+import { GoalProgress } from "@/components/zad/GoalProgress";
 
 export const Route = createFileRoute("/goals")({
   head: () => ({
@@ -55,7 +56,7 @@ function Page() {
           const done = g.target > 0 && g.saved >= g.target;
           const vault = vaults.find((v) => v.id === g.vaultId);
           return (
-            <div key={g.id} className="rounded-2xl border border-border bg-card p-4">
+            <div key={g.id} className="motion-card animate-enter rounded-2xl border border-border bg-card p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate font-medium">{g.name}</p>
@@ -75,7 +76,7 @@ function Page() {
               </div>
               <div className="mt-3 flex items-end justify-between">
                 <p className="font-display text-lg font-semibold">{money(g.saved)} <span className="text-xs font-normal text-muted-foreground">/ {money(g.target)}</span></p>
-                <span className="text-sm text-muted-foreground">{Math.round(p)}%</span>
+                <GoalProgress percent={p} done={done} />
               </div>
               <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-secondary">
                 <div className="h-full rounded-full bg-gold transition-all" style={{ width: `${p}%` }} />
