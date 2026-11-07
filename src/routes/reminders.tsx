@@ -63,9 +63,9 @@ function Page() {
         {reminders.map((r) => {
           const goal = r.goalId ? goals.find((g) => g.id === r.goalId) : null;
           return (
-            <div key={r.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5">
+            <div key={r.id} className="motion-card animate-enter flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5">
               <span className={r.enabled ? "grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-primary" : "grid size-11 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground"}>
-                <Bell className="size-5" />
+                <Bell key={String(r.enabled)} className="animate-enter size-5" />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{r.title}</p>
