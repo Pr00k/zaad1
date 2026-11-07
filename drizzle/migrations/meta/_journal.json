@@ -15,6 +15,13 @@
       "when": 1791745049722,
       "tag": "0001_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794075790343,
+      "tag": "0002_private_financial_sync",
+      "breakpoints": true
     }
   ]
 }

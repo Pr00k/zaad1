@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      financial_states: {
+        Row: {
+          data: Json
+          revision: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          revision?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          revision?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -46,7 +67,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      save_financial_state: {
+        Args: { expected_revision: number; snapshot: Json }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
