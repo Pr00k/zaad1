@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { ReminderEngine } from "./ReminderEngine";
 import { AuthScreen } from "./AuthScreen";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { CloudSync } from "./CloudSync";
 
 const NAV = [
   { to: "/", icon: Home, k: "home" },
@@ -18,14 +19,14 @@ const NAV = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  return <AuthProvider><Shell>{children}</Shell></AuthProvider>;
+  return <AuthProvider><CloudSync><Shell>{children}</Shell></CloudSync></AuthProvider>;
 }
 
 function Shell({ children }: { children: ReactNode }) {
   const { user, loading, guest } = useAuth();
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    Promise.resolve(useZad.persist.rehydrate()).then(() => setReady(true));
+    setReady(true);
   }, []);
   const { t, lang, dir } = useT();
   const { pathname } = useLocation();

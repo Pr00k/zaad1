@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { useT, LANG_CODES, langName, nativeName } from "@/lib/i18n";
 import { CURRENCIES, currencyName, useZad } from "@/lib/store";
 import { Modal, PageTitle, inputCls } from "@/components/zad/ui";
+import { useCloudSync } from "@/components/zad/CloudSync";
+import { Cloud, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -34,6 +36,8 @@ function Page() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [curOpen, setCurOpen] = useState(false);
+  const [confirmGuestImport, setConfirmGuestImport] = useState(false);
+  const sync = useCloudSync();
   const { lang } = useT();
   const { user, guest, setGuest, profile, photo, hasGoogle, updateProfile, signOut } = useAuth();
   const photoRef = useRef<HTMLInputElement>(null);
@@ -66,6 +70,14 @@ function Page() {
       <PageTitle title={t.settings} />
 
       <div className="mt-4 space-y-3">
+        {sync && <section className="space-y-3 border-b border-border py-4">
+          <h2 className="flex items-center gap-2 font-semibold"><Cloud className="size-4 text-primary" />{t.cloudSync}</h2>
+          <div className="flex items-center justify-between gap-3">
+            <p role="status" className="text-sm text-muted-foreground">{sync.status === "error" ? t.syncError : sync.status === "conflict" ? t.syncConflict : t[sync.status]}</p>
+            <Button variant="ghost" size="icon" title={t.retry} aria-label={t.retry} disabled={sync.status === "syncing"} onClick={sync.retry}><RefreshCw className={sync.status === "syncing" ? "animate-spin" : ""} /></Button>
+          </div>
+          <Button variant="soft" className="h-auto min-h-11 w-full whitespace-normal" onClick={() => setConfirmGuestImport(true)}><Upload className="size-4" />{t.importGuest}</Button>
+        </section>}
         <section className="rounded-2xl border border-border bg-card p-4">
           {user ? (
             <div className="flex items-center gap-3">
@@ -143,10 +155,17 @@ function Page() {
       <Picker open={langOpen} onOpenChange={setLangOpen} title={t.language} items={langItems} value={settings.lang} onPick={(v) => setSettings({ lang: v })} />
       <Picker open={curOpen} onOpenChange={setCurOpen} title={t.currency} items={curItems} value={settings.currency} onPick={(v) => setSettings({ currency: v })} />
       <Modal open={confirmReset} onOpenChange={setConfirmReset} title={t.reset}>
-        <p className="text-sm text-muted-foreground">{t.resetConfirm}</p>
+        <p className="text-sm text-muted-foreground">{user ? t.resetCloudConfirm : t.resetConfirm}</p>
         <div className="mt-4 grid grid-cols-2 gap-3">
           <Button variant="soft" onClick={() => setConfirmReset(false)}>{t.cancel}</Button>
           <Button variant="destructive" onClick={() => { reset(); setConfirmReset(false); toast.success(t.done); }}>{t.reset}</Button>
+        </div>
+      </Modal>
+      <Modal open={confirmGuestImport} onOpenChange={setConfirmGuestImport} title={t.importGuest}>
+        <p className="text-sm leading-relaxed text-muted-foreground">{t.importGuestHint}</p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button variant="soft" onClick={() => setConfirmGuestImport(false)}>{t.cancel}</Button>
+          <Button variant="gold" onClick={() => { sync?.importGuest(); setConfirmGuestImport(false); }}>{t.import}</Button>
         </div>
       </Modal>
     </>
