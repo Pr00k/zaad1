@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { initial, useZad } from "@/lib/store";
 import { readFinancialState, writeFinancialState } from "@/lib/sync.functions";
 import { cacheKey, hasConflict, readCache, writeCache, type SyncCache } from "@/lib/sync-cache";
-import { selectSnapshot, type Snapshot } from "@/lib/sync-schema";
+import { selectSnapshot, snapshotSchema, type Snapshot } from "@/lib/sync-schema";
 import { useT } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Modal } from "./ui";
@@ -40,8 +40,13 @@ export function CloudSync({ children }: { children: ReactNode }) {
     };
     useZad.persist.setOptions({ name: userId ? `zad-account:${userId}` : "zad-v4" });
     if (!userId) {
-      apply(initial());
-      Promise.resolve(useZad.persist.rehydrate()).then(() => { if (alive) setLoadedIdentity(identity); });
+      let snapshot: Snapshot = initial();
+      try {
+        const raw = JSON.parse(localStorage.getItem("zad-v4") ?? "null");
+        if (raw?.state) snapshot = snapshotSchema.parse(raw.state);
+      } catch { /* no valid guest snapshot */ }
+      apply(snapshot);
+      setLoadedIdentity(identity);
       return () => { alive = false; };
     }
     let cache: SyncCache = readCache(localStorage, userId) ?? { snapshot: initial(), revision: null, dirty: false };
