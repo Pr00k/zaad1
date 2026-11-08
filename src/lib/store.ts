@@ -5,12 +5,12 @@ import { allocateAmount } from "./allocation";
 import { snapshotSchema } from "./sync-schema";
 
 export type Currency = string;
-export interface Vault { id: string; key?: string; name: string; pct: number; balance: number; color: string }
-export interface Tx { id: string; type: "income" | "expense" | "goal"; amount: number; note: string; date: string; vaultId: string | null; createdAt: number; allocations?: { vaultId: string; amount: number }[] }
+export interface Vault { id: string; key?: string | undefined; name: string; pct: number; balance: number; color: string }
+export interface Tx { id: string; type: "income" | "expense" | "goal"; amount: number; note: string; date: string; vaultId: string | null; createdAt: number; allocations?: { vaultId: string; amount: number }[] | undefined }
 export interface Goal { id: string; name: string; target: number; saved: number; deadline: string; vaultId: string; createdAt: number }
 export interface Reminder {
   id: string; title: string; date: string; time: string; repeat: Repeat; intervalValue: number; intervalUnit: Unit;
-  goalId: string | null; enabled: boolean; sound: string; snoozeMin: number; vibrate: boolean; nextAt: number | null; lastFired?: number;
+  goalId: string | null; enabled: boolean; sound: string; snoozeMin: number; vibrate: boolean; nextAt: number | null; lastFired?: number | undefined;
 }
 export interface Settings { name: string; currency: Currency; lang: string }
 
