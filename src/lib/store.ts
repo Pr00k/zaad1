@@ -33,6 +33,14 @@ export function addEmergencyVault(vaults: Vault[]): Vault[] {
   return emergency ? [...vaults, { ...emergency }] : vaults;
 }
 
+/** Apply defaults only to old versions; never resurrect intentional deletions. */
+export function migrateFinancialState(persisted: unknown, version: number) {
+  const state = persisted as Partial<State>;
+  return version < 2 && Array.isArray(state.vaults)
+    ? { ...state, vaults: addEmergencyVault(state.vaults) }
+    : state;
+}
+
 type Result = { ok: true } | { ok: false; error: "insufficient" | "insufficientAll" | "invalidAmount" };
 
 interface State {
@@ -191,12 +199,7 @@ export const useZad = create<State>()(
     }),
     {
       name: "zad-v4", storage: createJSONStorage(() => localStorage), skipHydration: true, version: 2,
-      migrate: (persisted, version) => {
-        const state = persisted as Partial<State>;
-        return version < 2 && Array.isArray(state.vaults)
-          ? { ...state, vaults: addEmergencyVault(state.vaults) }
-          : state;
-      },
+      migrate: migrateFinancialState,
     },
   ),
 );
