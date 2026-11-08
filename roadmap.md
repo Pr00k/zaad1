@@ -3,8 +3,8 @@
 - [x] Time-based greeting with user name on home
 - [x] Refine Arabic and English wording across the application
 - [x] Add and verify the emergency fund without altering balances or allocations
-- [ ] Add private cloud sync with offline queue, account isolation, and conflict protection
-- [ ] Add proportional all-vault expense deduction with exact amounts and undo
-- [ ] Add subtle interactive motion with reduced-motion support
-- [ ] Verify cloud synchronization, expense distribution, and desktop/mobile views
-- [ ] Complete persisted-data migrations and recover account data when the sync cache is missing
+- [x] Add private cloud sync with offline queue, account isolation, and conflict protection
+- [x] Add proportional all-vault expense deduction with exact amounts and undo
+- [x] Add subtle interactive motion with reduced-motion support
+- [x] Verify cloud synchronization, expense distribution, and desktop/mobile views
+- [x] Complete persisted-data migrations and recover account data when the sync cache is missing
