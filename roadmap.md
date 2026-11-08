@@ -7,3 +7,4 @@
 - [ ] Add proportional all-vault expense deduction with exact amounts and undo
 - [ ] Add subtle interactive motion with reduced-motion support
 - [ ] Verify cloud synchronization, expense distribution, and desktop/mobile views
+- [ ] Complete persisted-data migrations and recover account data when the sync cache is missing
