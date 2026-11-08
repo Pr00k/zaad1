@@ -5,7 +5,8 @@ import { useAuth } from "@/lib/auth";
 import { initial, useZad } from "@/lib/store";
 import { readFinancialState, writeFinancialState } from "@/lib/sync.functions";
 import { cacheKey, hasConflict, readCache, writeCache, type SyncCache } from "@/lib/sync-cache";
-import { selectSnapshot, snapshotSchema, type Snapshot } from "@/lib/sync-schema";
+import { selectSnapshot, type Snapshot } from "@/lib/sync-schema";
+import { readPersistedSnapshot } from "@/lib/financial-persistence";
 import { useT } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Modal } from "./ui";
@@ -40,19 +41,17 @@ export function CloudSync({ children }: { children: ReactNode }) {
     };
     useZad.persist.setOptions({ name: userId ? `zad-account:${userId}` : "zad-v4" });
     if (!userId) {
-      let snapshot: Snapshot = initial();
-      try {
-        const raw = JSON.parse(localStorage.getItem("zad-v4") ?? "null");
-        if (raw?.state) snapshot = snapshotSchema.parse(raw.state);
-      } catch { /* no valid guest snapshot */ }
+      const snapshot = readPersistedSnapshot(localStorage, "zad-v4") ?? initial();
       apply(snapshot);
       setLoadedIdentity(identity);
       return () => { alive = false; };
     }
-    let cache: SyncCache = readCache(localStorage, userId) ?? { snapshot: initial(), revision: null, dirty: false };
+    const savedAccount = readPersistedSnapshot(localStorage, `zad-account:${userId}`);
+    let cache: SyncCache = readCache(localStorage, userId) ?? { snapshot: savedAccount ?? initial(), revision: null, dirty: savedAccount !== null };
     apply(cache.snapshot);
     setLoadedIdentity(identity);
     const persist = () => writeCache(localStorage, userId, cache);
+    persist();
     const sync = async () => {
       if (!alive || busy || conflict) return;
       if (!navigator.onLine) { setStatus("offline"); return; }
@@ -107,8 +106,8 @@ export function CloudSync({ children }: { children: ReactNode }) {
       },
       importGuest: () => {
         try {
-          const raw = JSON.parse(localStorage.getItem("zad-v4") ?? "null");
-          if (!raw?.state || !useZad.getState().importData(JSON.stringify(raw.state))) return;
+           const snapshot = readPersistedSnapshot(localStorage, "zad-v4");
+           if (!snapshot || !useZad.getState().importData(JSON.stringify(snapshot))) return;
         } catch { /* keep existing account data */ }
       },
     });

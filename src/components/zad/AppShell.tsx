@@ -38,10 +38,6 @@ function Shell({ children }: { children: ReactNode }) {
 
   return (
     <div className="relative mx-auto flex min-h-dvh max-w-md flex-col overflow-hidden">
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-0 mx-auto max-w-md overflow-hidden">
-        <div className="animate-orb absolute -top-24 -end-24 size-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="animate-orb absolute bottom-24 -start-20 size-64 rounded-full bg-chart-2/15 blur-3xl [animation-delay:-5s]" />
-      </div>
       <main className="relative z-10 flex-1 px-4 pb-28 pt-[max(env(safe-area-inset-top),1rem)]">
         {ready && !loading ? (user || guest ? children : <AuthScreen />) : <div className="grid h-[60dvh] place-items-center"><div className="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}
       </main>

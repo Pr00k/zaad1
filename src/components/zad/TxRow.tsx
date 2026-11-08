@@ -18,11 +18,12 @@ export function TxRow({ tx }: { tx: Tx }) {
   const label = tx.note || (tx.type === "income" ? t.income : tx.type === "goal" ? t.contribute : t.expense);
 
   const remove = () => {
+    if (eating) return;
     setEating(true);
     setTimeout(() => {
       const removed = del(tx.id);
       if (removed) toast(t.deleted, { action: { label: t.undo, onClick: () => restore(removed) } });
-    }, 420);
+    }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 420);
   };
 
   return (
