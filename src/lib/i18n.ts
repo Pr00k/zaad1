@@ -1,6 +1,7 @@
 import { useZad } from "./store";
 
 const ar = {
+  connectAccount: "ربط مساعد بحساب زاد", connectionAccess: "يمكن للمساعد قراءة أرصدتك وخزائنك وأهدافك ومعاملاتك المتزامنة فقط.", connectionBoundary: "تبقى صلاحيات حسابك سارية؛ لا يمكن تعديل أموالك عبر هذا الاتصال.", approveConnection: "السماح بالاتصال", denyConnection: "رفض الاتصال", connectionError: "تعذّر إكمال الاتصال. قد يكون الطلب منتهي الصلاحية؛ ابدأ الاتصال مجددًا.", connectionLoading: "جارٍ التحقق من طلب الاتصال", shareProfile: "مشاركة ملفك الشخصي الأساسي", shareEmail: "مشاركة بريدك الإلكتروني", additionalPermission: "إذن إضافي مطلوب",
   appName: "زاد", tagline: "إدارة واعية لأموالك ومواعيدك",
   hello: "مرحبًا", total: "إجمالي الرصيد", ops: "عملية", growth: "تغيّر الرصيد", last7: "آخر 7 أيام",
   income: "الدخل", expense: "المصروفات", activity: "المعاملات", vaults: "الخزائن", goals: "الأهداف", reminders: "التذكيرات", settings: "الإعدادات", home: "الرئيسية",
@@ -25,6 +26,7 @@ const ar = {
 };
 type Dict = typeof ar;
 const en: Dict = {
+  connectAccount: "Connect an assistant to Zad", connectionAccess: "The assistant can read only your synced balances, vaults, goals and transactions.", connectionBoundary: "Your account permissions remain in effect; this connection cannot change your money.", approveConnection: "Allow connection", denyConnection: "Deny connection", connectionError: "Unable to complete the connection. The request may have expired; start again.", connectionLoading: "Checking the connection request", shareProfile: "Share your basic profile", shareEmail: "Share your email address", additionalPermission: "Additional permission requested",
   appName: "Zad", tagline: "Mindful money and time management",
   hello: "Hello", total: "Total balance", ops: "transactions", growth: "Balance history", last7: "Last 7 days",
   income: "Income", expense: "Expenses", activity: "Transactions", vaults: "Vaults", goals: "Goals", reminders: "Reminders", settings: "Settings", home: "Home",

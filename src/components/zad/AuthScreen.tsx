@@ -9,6 +9,7 @@ import { useZad } from "@/lib/store";
 import { fileToAvatar, useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 function GoogleIcon() {
   return (
@@ -27,7 +28,7 @@ const schema = z.object({
   name: z.string().trim().max(40),
 });
 
-export function AuthScreen() {
+export function AuthScreen({ next = "/" }: { next?: string }) {
   const { t } = useT();
   const { setGuest } = useAuth();
   const setSettings = useZad((s) => s.setSettings);
@@ -38,12 +39,14 @@ export function AuthScreen() {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const returnPath = oauthReturnPath(next);
 
   const google = async () => {
     setBusy(true);
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: new URL(returnPath, window.location.origin).href });
     if (r.error) { toast.error(t.authError); setBusy(false); return; }
     if (r.redirected) return;
+    if (returnPath !== "/") window.location.assign(returnPath);
     setBusy(false);
   };
 
@@ -56,11 +59,12 @@ export function AuthScreen() {
       const { error } = await supabase.auth.signInWithPassword({ email: p.data.email, password: p.data.password });
       setBusy(false);
       if (error) toast.error(t.authError);
+      else if (returnPath !== "/") window.location.assign(returnPath);
       return;
     }
     const { data, error } = await supabase.auth.signUp({
       email: p.data.email, password: p.data.password,
-      options: { emailRedirectTo: window.location.origin, data: { full_name: p.data.name } },
+      options: { emailRedirectTo: new URL(returnPath, window.location.origin).href, data: { full_name: p.data.name } },
     });
     if (!error && avatar) {
       if (data.user && data.session) await supabase.from("profiles").upsert({ id: data.user.id, display_name: p.data.name, avatar_url: avatar, use_google_avatar: false });
@@ -70,6 +74,7 @@ export function AuthScreen() {
     if (error) { toast.error(error.message); return; }
     setSettings({ name: p.data.name });
     if (!data.session) { toast.success(t.checkEmail, { duration: 8000 }); setMode("in"); }
+    else if (returnPath !== "/") window.location.assign(returnPath);
   };
 
   const onFile = async (f: File) => {
@@ -116,7 +121,7 @@ export function AuthScreen() {
           <GoogleIcon /> {t.signInGoogle}
         </Button>
 
-        <Button type="button" size="lg" variant="ghost" className="w-full text-muted-foreground" onClick={() => setGuest(true)} disabled={busy}>
+        <Button type="button" size="lg" variant="ghost" className="w-full text-muted-foreground" onClick={() => setGuest(true)} disabled={busy || returnPath !== "/"}>
           {t.skip}
         </Button>
         <p className="text-center text-xs leading-relaxed text-muted-foreground">{t.guestHint}</p>
