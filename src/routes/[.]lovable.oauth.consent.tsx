@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/.lovable/oauth/consent")({
   ssr: false,
-  validateSearch: (s: Record<string, unknown>) => ({ authorization_id: typeof s.authorization_id === "string" ? s.authorization_id : "" }),
+  validateSearch: (s: Record<string, unknown>) => ({ authorization_id: typeof s['authorization_id'] === "string" ? s['authorization_id'] : "" }),
   head: () => ({ meta: [
     { title: "زاد — موافقة اتصال المساعد" },
     { name: "description", content: "راجع طلب اتصال المساعد بحساب زاد ووافق عليه أو ارفضه." },
