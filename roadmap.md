@@ -8,3 +8,5 @@
 - [x] Add subtle interactive motion with reduced-motion support
 - [x] Verify cloud synchronization, expense distribution, and desktop/mobile views
 - [x] Complete persisted-data migrations and recover account data when the sync cache is missing
+- [ ] Add protected MCP financial reads and browser-local dashboard tools
+- [ ] Preserve sign-in returns and verify OAuth consent and tool access
