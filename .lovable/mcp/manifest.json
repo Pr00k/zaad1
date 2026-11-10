@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "sdk_version": "3.4.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://ppgplyitwqhakveqvqac.supabase.co/auth/v1",
+    "require_oauth_client_claim": true,
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "zaad1",
+      "version": "0.1.0",
+      "title": "Zaad1"
+    },
+    "tools": [
+      {
+        "name": "get_financial_summary",
+        "title": "Financial summary",
+        "description": "Read your cloud-synced balances, vault allocations and goal progress; excludes offline changes.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_transactions",
+        "title": "Recent transactions",
+        "description": "Read up to 100 of your latest cloud-synced transactions, optionally filtered by type.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "default": 20,
+              "description": "Maximum transactions (1–100).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "type": {
+              "default": "all",
+              "description": "Transaction type to include.",
+              "type": "string",
+              "enum": [
+                "all",
+                "income",
+                "expense",
+                "goal"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

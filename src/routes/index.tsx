@@ -9,6 +9,8 @@ import { localDateStr } from "@/lib/reminders";
 import { TxForm } from "@/components/zad/forms";
 import { TxRow } from "@/components/zad/TxRow";
 import { Empty, Section, vaultName } from "@/components/zad/ui";
+import { useWebMCP } from "use-webmcp-tool";
+import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,6 +34,24 @@ function Dashboard() {
   const who = profile?.display_name || settings.name;
   const [form, setForm] = useState<null | "income" | "expense">(null);
   const total = vaults.reduce((a, v) => a + v.balance, 0);
+  useWebMCP({
+    name: "read_dashboard", description: "Read the current dashboard balance, vaults and recent transactions in this open tab, including local changes.",
+    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    execute: () => runWebMCPTool("read_dashboard", () => [
+      `${t.total}: ${money(total)}`,
+      ...vaults.map(v => `${v.id}: ${vaultName(v, t)} — ${money(v.balance)} (${v.pct}%)`),
+      ...txs.slice(0, 4).map(tx => `${tx.id}: ${tx.type} ${money(tx.amount)} ${tx.note}`),
+    ].join("\n")),
+  });
+  useWebMCP({
+    name: "open_transaction_form", description: "Open the dashboard income or expense form for the user to review and complete; does not save a transaction.",
+    inputSchema: { type: "object", properties: { type: { type: "string", enum: ["income", "expense"], description: "Which transaction form to open." } }, required: ["type"], additionalProperties: false },
+    execute: ({ type }: { type: string }) => runWebMCPTool("open_transaction_form", () => {
+      if (type !== "income" && type !== "expense") throw new Error("Expected income or expense.");
+      setForm(type);
+      return "Transaction form opened for review; nothing saved.";
+    }),
+  });
 
   const chart = useMemo(() => {
     const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return localDateStr(d); });

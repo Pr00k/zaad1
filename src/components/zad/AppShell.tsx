@@ -30,6 +30,7 @@ function Shell({ children }: { children: ReactNode }) {
   }, []);
   const { t, lang, dir } = useT();
   const { pathname } = useLocation();
+  const consent = pathname === "/.lovable/oauth/consent";
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -39,9 +40,9 @@ function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="relative mx-auto flex min-h-dvh max-w-md flex-col overflow-hidden">
       <main className="relative z-10 flex-1 px-4 pb-28 pt-[max(env(safe-area-inset-top),1rem)]">
-        {ready && !loading ? (user || guest ? children : <AuthScreen />) : <div className="grid h-[60dvh] place-items-center"><div className="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}
+        {ready && !loading ? (consent || user || guest ? children : <AuthScreen />) : <div className="grid h-[60dvh] place-items-center"><div className="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}
       </main>
-      {(user || guest) && <nav className="glass fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-border px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2">
+      {(user || guest) && !consent && <nav className="glass fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-border px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2">
         <ul className="grid grid-cols-6">
           {NAV.map(({ to, icon: Icon, k }) => {
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
@@ -56,7 +57,7 @@ function Shell({ children }: { children: ReactNode }) {
           })}
         </ul>
       </nav>}
-      {(user || guest) && ready && <ReminderEngine />}
+      {(user || guest) && ready && !consent && <ReminderEngine />}
     </div>
   );
 }
