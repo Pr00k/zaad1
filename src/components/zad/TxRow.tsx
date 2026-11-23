@@ -34,7 +34,7 @@ export function TxRow({ tx }: { tx: Tx }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{label}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {tx.vaultId ? vaultName(vault, t) : tx.type === "expense" ? t.allVaults : t.splitAuto} · {new Date(tx.date).toLocaleDateString(lang === "ar" ? "ar-IQ" : lang, { day: "numeric", month: "short" })}
+          {tx.vaultId ? vaultName(vault, t) : tx.type === "income" ? t.splitAuto : t.allVaults} · {new Date(tx.date).toLocaleDateString(lang === "ar" ? "ar-IQ" : lang, { day: "numeric", month: "short" })}
         </p>
       </div>
       <span className={cn("font-display text-sm font-semibold", tx.type === "income" ? "text-success" : "text-foreground")}>

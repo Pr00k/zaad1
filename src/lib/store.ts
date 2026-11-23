@@ -3,11 +3,13 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { computeNext, localDateStr, type Repeat, type Unit } from "./reminders";
 import { allocateAmount } from "./allocation";
 import { snapshotSchema } from "./sync-schema";
+import { nextInstallmentIndex, type Installment } from "./installments";
+export type { Installment } from "./installments";
 
 export type Currency = string;
 export interface Vault { id: string; key?: string | undefined; name: string; pct: number; balance: number; color: string }
-export interface Tx { id: string; type: "income" | "expense" | "goal"; amount: number; note: string; date: string; vaultId: string | null; createdAt: number; allocations?: { vaultId: string; amount: number }[] | undefined }
-export interface Goal { id: string; name: string; target: number; saved: number; deadline: string; vaultId: string; createdAt: number }
+export interface Tx { id: string; type: "income" | "expense" | "goal"; amount: number; note: string; date: string; vaultId: string | null; createdAt: number; allocations?: { vaultId: string; amount: number }[] | undefined; installmentId?: string | undefined; installmentIndex?: number | undefined }
+export interface Goal { id: string; name: string; target: number; saved: number; deadline: string; vaultId: string; createdAt: number; allocations?: { vaultId: string; amount: number }[] | undefined }
 export interface Reminder {
   id: string; title: string; date: string; time: string; repeat: Repeat; intervalValue: number; intervalUnit: Unit;
   goalId: string | null; enabled: boolean; sound: string; snoozeMin: number; vibrate: boolean; nextAt: number | null; lastFired?: number | undefined;
@@ -41,10 +43,14 @@ export function migrateFinancialState(persisted: unknown, version: number) {
     : state;
 }
 
-type Result = { ok: true } | { ok: false; error: "insufficient" | "insufficientAll" | "invalidAmount" };
+type Result = { ok: true } | { ok: false; error: "insufficient" | "insufficientAll" | "invalidAmount" | "invalidInstallment" | "alreadyPaid" };
 
 interface State {
-  vaults: Vault[]; txs: Tx[]; goals: Goal[]; reminders: Reminder[]; settings: Settings;
+  vaults: Vault[]; txs: Tx[]; goals: Goal[]; installments: Installment[]; reminders: Reminder[]; settings: Settings;
+  saveInstallment(plan: Partial<Installment>): Result;
+  deleteInstallment(id: string): void;
+  payInstallment(id: string, index: number, date: string): Result;
+  markInstallmentNotified(id: string, index: number): void;
   addIncome(amount: number, note: string, date: string, vaultId: string | null): Result;
   addExpense(amount: number, note: string, date: string, vaultId: string): Result;
   deleteTx(id: string): Tx | undefined;
@@ -66,7 +72,7 @@ interface State {
 }
 
 export const initial = () => ({
-  vaults: DEFAULT_VAULTS.map((v) => ({ ...v })), txs: [] as Tx[], goals: [] as Goal[], reminders: [] as Reminder[],
+  vaults: DEFAULT_VAULTS.map((v) => ({ ...v })), txs: [] as Tx[], goals: [] as Goal[], installments: [] as Installment[], reminders: [] as Reminder[],
   settings: { name: "", currency: "IQD", lang: "ar" } as Settings,
 });
 
@@ -107,11 +113,17 @@ export const useZad = create<State>()(
       deleteTx(id) {
         const tx = get().txs.find((t) => t.id === id);
         if (!tx) return;
-        set((s) => ({ txs: s.txs.filter((t) => t.id !== id), vaults: applyTx(s.vaults, tx, -1) }));
+        set((s) => ({ txs: s.txs.filter((t) => t.id !== id), vaults: applyTx(s.vaults, tx, -1),
+          installments: s.installments.map((p) => p.id === tx.installmentId ? { ...p, payments: p.payments.filter((payment) => payment.txId !== id), notified: p.notified.filter((index) => index !== tx.installmentIndex) } : p),
+        }));
         return tx;
       },
       restoreTx(tx) {
-        set((s) => ({ txs: [tx, ...s.txs].sort((a, b) => b.createdAt - a.createdAt), vaults: applyTx(s.vaults, tx, 1) }));
+        if (get().txs.some((t) => t.id === tx.id)) return;
+        if (tx.installmentIndex !== undefined && get().installments.some((p) => p.id === tx.installmentId && p.payments.some((payment) => payment.index === tx.installmentIndex))) return;
+        set((s) => ({ txs: [tx, ...s.txs].sort((a, b) => b.createdAt - a.createdAt), vaults: applyTx(s.vaults, tx, 1),
+          installments: s.installments.map((p) => p.id === tx.installmentId && tx.installmentIndex !== undefined ? { ...p, payments: [...p.payments, { index: tx.installmentIndex, txId: tx.id, date: tx.date, amount: tx.amount }] } : p),
+        }));
       },
       saveVault(v) {
         set((s): Partial<State> => {
@@ -129,9 +141,15 @@ export const useZad = create<State>()(
           const victim = s.vaults.find((v) => v.id === id);
           const rest = s.vaults.filter((v) => v.id !== id);
           if (!victim || rest.length === 0) return s;
-          const f = rest[0]!;
+          const f = rest[0];
+          if (!f) return s;
           rest[0] = { ...f, balance: r2(f.balance + victim.balance) };
-          return { vaults: distributeTo100(rest), goals: s.goals.map((g) => (g.vaultId === id ? { ...g, vaultId: f.id } : g)) };
+          const remap = (allocations: { vaultId: string; amount: number }[]) => mergeAllocations(allocations.map((a) => a.vaultId === id ? { ...a, vaultId: f.id } : a));
+          return { vaults: distributeTo100(rest),
+            goals: s.goals.map((g) => ({ ...g, vaultId: g.vaultId === id ? f.id : g.vaultId, ...(g.allocations ? { allocations: remap(g.allocations) } : {}) })),
+            installments: s.installments.map((p) => p.vaultId === id ? { ...p, vaultId: f.id } : p),
+            txs: s.txs.map((tx) => ({ ...tx, vaultId: tx.vaultId === id ? f.id : tx.vaultId, ...(tx.allocations ? { allocations: remap(tx.allocations) } : {}) })),
+          };
         });
       },
       setPcts(p) { set((s) => ({ vaults: s.vaults.map((v) => ({ ...v, pct: p[v.id] ?? v.pct })) })); },
@@ -145,23 +163,48 @@ export const useZad = create<State>()(
           const g = s.goals.find((x) => x.id === id);
           return {
             goals: s.goals.filter((x) => x.id !== id),
-            vaults: g ? s.vaults.map((v) => (v.id === g.vaultId ? { ...v, balance: r2(v.balance + g.saved) } : v)) : s.vaults,
+            vaults: g ? s.vaults.map((v) => ({ ...v, balance: r2(v.balance + (g.allocations ? g.allocations.find((a) => a.vaultId === v.id)?.amount ?? 0 : v.id === g.vaultId ? g.saved : 0)) })) : s.vaults,
             reminders: s.reminders.map((r) => (r.goalId === id ? { ...r, goalId: null } : r)),
           };
         });
       },
       contribute(goalId, amount) {
-        if (!(amount > 0)) return { ok: false, error: "invalidAmount" };
+        if (!Number.isFinite(amount) || Math.round(amount * 100) <= 0) return { ok: false, error: "invalidAmount" };
+        amount = r2(amount);
         const g = get().goals.find((x) => x.id === goalId);
-        const v = g && get().vaults.find((x) => x.id === g.vaultId);
-        if (!g || !v || v.balance < amount) return { ok: false, error: "insufficient" };
+        if (!g) return { ok: false, error: "insufficient" };
+        const funding = fundingAllocations(get().vaults, g.vaultId, amount);
+        if (!funding.ok) return funding;
+        const allocations = funding.allocations;
+        const previous = g.allocations ?? (g.saved > 0 ? [{ vaultId: g.vaultId, amount: g.saved }] : []);
         set((s) => ({
-          goals: s.goals.map((x) => (x.id === goalId ? { ...x, saved: r2(x.saved + amount) } : x)),
-          vaults: s.vaults.map((x) => (x.id === v.id ? { ...x, balance: r2(x.balance - amount) } : x)),
-          txs: [{ id: uid(), type: "goal", amount, note: g.name, date: localDateStr(), vaultId: v.id, createdAt: Date.now() }, ...s.txs],
+          goals: s.goals.map((x) => (x.id === goalId ? { ...x, saved: r2(x.saved + amount), allocations: mergeAllocations([...previous, ...allocations]) } : x)),
+          vaults: deductAllocations(s.vaults, allocations),
+          txs: [{ id: uid(), type: "goal", amount, note: g.name, date: localDateStr(), vaultId: g.vaultId === "all" ? null : g.vaultId, allocations, createdAt: Date.now() }, ...s.txs],
         }));
         return { ok: true };
       },
+      saveInstallment(input) {
+        const existing = get().installments.find((p) => p.id === input.id);
+        const plan = { id: uid(), name: "", amount: 0, months: 1, firstMonth: localDateStr().slice(0, 7), dueDay: 1, reminderDays: 1, vaultId: "all", createdAt: Date.now(), ...existing, ...input, payments: existing?.payments ?? [], notified: existing?.notified ?? [] };
+        const parsed = snapshotSchema.shape.installments.unwrap().element.safeParse(plan);
+        if (!parsed.success || !plan.name.trim() || r2(plan.amount) <= 0 || !Number.isFinite(plan.amount * plan.months) || (plan.vaultId !== "all" && !get().vaults.some((v) => v.id === plan.vaultId))) return { ok: false, error: "invalidInstallment" };
+        if (existing?.payments.length && (plan.amount !== existing.amount || plan.months !== existing.months || plan.firstMonth !== existing.firstMonth || plan.dueDay !== existing.dueDay)) return { ok: false, error: "invalidInstallment" };
+        const value = { ...parsed.data, name: plan.name.trim(), amount: r2(plan.amount), notified: existing && (existing.reminderDays !== plan.reminderDays || existing.firstMonth !== plan.firstMonth || existing.dueDay !== plan.dueDay) ? [] : plan.notified };
+        set((s) => ({ installments: existing ? s.installments.map((p) => p.id === existing.id ? value : p) : [...s.installments, value] }));
+        return { ok: true };
+      },
+      deleteInstallment(id) { set((s) => ({ installments: s.installments.filter((p) => p.id !== id) })); },
+      payInstallment(id, index, date) {
+        const plan = get().installments.find((p) => p.id === id);
+        if (!plan || nextInstallmentIndex(plan) !== index) return { ok: false, error: "alreadyPaid" };
+        const funding = fundingAllocations(get().vaults, plan.vaultId, plan.amount);
+        if (!funding.ok) return funding;
+        const tx: Tx = { id: uid(), type: "expense", amount: plan.amount, note: plan.name, date, vaultId: plan.vaultId === "all" ? null : plan.vaultId, allocations: funding.allocations, installmentId: id, installmentIndex: index, createdAt: Date.now() };
+        set((s) => ({ vaults: deductAllocations(s.vaults, funding.allocations), txs: [tx, ...s.txs], installments: s.installments.map((p) => p.id === id ? { ...p, payments: [...p.payments, { index, txId: tx.id, date, amount: plan.amount }] } : p) }));
+        return { ok: true };
+      },
+      markInstallmentNotified(id, index) { set((s) => ({ installments: s.installments.map((p) => p.id === id ? { ...p, notified: [...new Set([...p.notified, index])] } : p) })); },
       saveReminder(r) {
         set((s) => {
           const base: Reminder = r.id ? { ...s.reminders.find((x) => x.id === r.id)!, ...r } as Reminder : {
@@ -203,6 +246,20 @@ export const useZad = create<State>()(
     },
   ),
 );
+
+function mergeAllocations(rows: { vaultId: string; amount: number }[]) {
+  const totals = new Map<string, number>();
+  for (const row of rows) totals.set(row.vaultId, r2((totals.get(row.vaultId) ?? 0) + row.amount));
+  return Array.from(totals, ([vaultId, amount]) => ({ vaultId, amount }));
+}
+function deductAllocations(vaults: Vault[], allocations: { vaultId: string; amount: number }[]) {
+  return vaults.map((v) => ({ ...v, balance: r2(v.balance - (allocations.find((a) => a.vaultId === v.id)?.amount ?? 0)) }));
+}
+function fundingAllocations(vaults: Vault[], vaultId: string, amount: number): { ok: true; allocations: { vaultId: string; amount: number }[] } | { ok: false; error: "insufficient" | "insufficientAll" } {
+  const allocations = vaultId === "all" ? allocateAmount(amount, vaults) : [{ vaultId, amount }];
+  if (!allocations.length || allocations.some((a) => (vaults.find((v) => v.id === a.vaultId)?.balance ?? 0) < a.amount)) return { ok: false, error: vaultId === "all" ? "insufficientAll" : "insufficient" };
+  return { ok: true, allocations };
+}
 
 function applyTx(vaults: Vault[], tx: Tx, sign: 1 | -1): Vault[] {
   if (tx.type === "goal") return vaults; // goal deposits are reversed via goal deletion

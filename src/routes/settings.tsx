@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useT, LANG_CODES, langName, nativeName } from "@/lib/i18n";
 import { CURRENCIES, currencyName, useZad } from "@/lib/store";
+import { selectSnapshot } from "@/lib/sync-schema";
 import { Modal, PageTitle, inputCls } from "@/components/zad/ui";
 import { useCloudSync } from "@/components/zad/CloudSync";
 import { Cloud, RefreshCw } from "lucide-react";
@@ -50,7 +51,7 @@ function Page() {
   const curItems = useMemo(() => CURRENCIES.map((c) => ({ value: c, label: `${c} — ${currencyName(c, lang)}` })), [lang]);
 
   const exportJson = () => {
-    const data = JSON.stringify({ vaults: state.vaults, txs: state.txs, goals: state.goals, reminders: state.reminders, settings: state.settings }, null, 2);
+    const data = JSON.stringify(selectSnapshot(state), null, 2);
     const url = URL.createObjectURL(new Blob([data], { type: "application/json" }));
     const a = document.createElement("a");
     a.href = url;

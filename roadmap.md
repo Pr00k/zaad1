@@ -11,3 +11,6 @@
 - [x] Add protected MCP financial reads and browser-local dashboard tools
 - [x] Preserve sign-in returns; verify missing/invalid consent errors and rejection of copied session tokens
 - [ ] Verify real OAuth approve/deny and financial reads after republishing; local preview authorization lookup is rejected by the provider's origin policy
+- [ ] Confirm all-vault expenses and add exact all-vault goal funding
+- [ ] Add monthly installment plans, vault selection, payment history and advance alerts
+- [ ] Verify installment persistence, payment safety and desktop/mobile flows
