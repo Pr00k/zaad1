@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useZad, type Reminder } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { playTone } from "@/lib/reminders";
+import { dueInstallmentAlerts, installmentDueDate } from "@/lib/installments";
+import { localDateStr } from "@/lib/reminders";
 import { Modal } from "./ui";
 
 /** Checks due reminders every few seconds, also catches up after the tab was asleep. */
@@ -12,11 +14,23 @@ export function ReminderEngine() {
   const [queue, setQueue] = useState<Reminder[]>([]);
   const markFired = useZad((s) => s.markFired);
   const snooze = useZad((s) => s.snooze);
+  const markInstallmentNotified = useZad((s) => s.markInstallmentNotified);
   const goals = useZad((s) => s.goals);
 
   useEffect(() => {
     const tick = () => {
       const now = Date.now();
+      dueInstallmentAlerts(useZad.getState().installments, now).forEach(({ plan, index }) => {
+        markInstallmentNotified(plan.id, index);
+        const day = localDateStr(installmentDueDate(plan, index));
+        const alert: Reminder = { id: `installment:${plan.id}:${index}`, title: `${t.installmentDue}: ${plan.name}`, date: day, time: day, repeat: "once", intervalValue: 1, intervalUnit: "days", goalId: null, enabled: false, sound: "bell", snoozeMin: 0, vibrate: true, nextAt: null };
+        playTone("bell");
+        if ("vibrate" in navigator) navigator.vibrate?.([300, 120, 300]);
+        if ("Notification" in window && Notification.permission === "granted") {
+          try { new Notification(t.appName, { body: alert.title, tag: alert.id }); } catch { /* in-app alert remains */ }
+        }
+        setQueue((q) => [...q, alert]);
+      });
       const due = useZad.getState().reminders.filter((r) => r.enabled && r.nextAt && r.nextAt <= now);
       if (!due.length) return;
       due.forEach((r) => {
@@ -34,7 +48,7 @@ export function ReminderEngine() {
     const vis = () => document.visibilityState === "visible" && tick();
     document.addEventListener("visibilitychange", vis);
     return () => { clearInterval(id); document.removeEventListener("visibilitychange", vis); };
-  }, [markFired, t.appName]);
+  }, [markFired, markInstallmentNotified, t.appName, t.installmentDue]);
 
   const cur = queue[0];
   const close = () => setQueue((q) => q.slice(1));
@@ -51,8 +65,9 @@ export function ReminderEngine() {
           <p className="text-lg">{cur.title}</p>
           {goal && <p className="text-sm text-muted-foreground">🎯 {goal.name}</p>}
           <div className="grid w-full grid-cols-2 gap-3">
+            {cur.id.startsWith("installment:") ? <Button variant="gold" size="lg" className="col-span-2" onClick={close}>{t.done}</Button> : <>
             <Button variant="soft" size="lg" onClick={() => { snooze(cur.id); close(); }}>{t.snooze} {cur.snoozeMin}{t.min}</Button>
-            <Button variant="gold" size="lg" onClick={close}>{t.done}</Button>
+            <Button variant="gold" size="lg" onClick={close}>{t.done}</Button></>}
           </div>
         </div>
       )}

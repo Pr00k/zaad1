@@ -8,6 +8,7 @@ import { useMoney, useZad, type Goal } from "@/lib/store";
 import { localDateStr } from "@/lib/reminders";
 import { Empty, Field, Modal, PageTitle, inputCls, vaultName } from "@/components/zad/ui";
 import { GoalProgress } from "@/components/zad/GoalProgress";
+import { InstallmentsPanel } from "@/components/zad/InstallmentsPanel";
 
 export const Route = createFileRoute("/goals")({
   head: () => ({
@@ -30,6 +31,8 @@ function Page() {
   const [editing, setEditing] = useState<Partial<Goal> | null>(null);
   const [deposit, setDeposit] = useState<Goal | null>(null);
   const [amount, setAmount] = useState("");
+  const [tab, setTab] = useState<"goals" | "installments">("goals");
+  const totalBalance = vaults.reduce((sum, v) => sum + v.balance, 0);
 
   const submitDeposit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,10 +48,15 @@ function Page() {
   return (
     <>
       <PageTitle title={t.goals} action={
+        tab === "goals" ?
         <Button variant="gold" size="sm" onClick={() => setEditing({ deadline: localDateStr(), vaultId: vaults[0]?.id ?? "" })}>
           <Plus className="size-4" /> {t.addGoal}
-        </Button>
+        </Button> : undefined
       } />
+      <div role="tablist" aria-label={t.goals} className="mt-4 grid grid-cols-2 gap-1 rounded-2xl bg-secondary p-1">
+        {(["goals", "installments"] as const).map((key) => <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)} className={`h-10 rounded-xl text-sm font-medium transition ${tab === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>{t[key]}</button>)}
+      </div>
+      {tab === "installments" ? <InstallmentsPanel /> : <>
 
       <div className="mt-4 space-y-3">
         {goals.map((g) => {
@@ -61,7 +69,7 @@ function Page() {
                 <div className="min-w-0">
                   <p className="truncate font-medium">{g.name}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {t.fundedFrom}: {vaultName(vault, t)}
+                    {t.fundedFrom}: {g.vaultId === "all" ? t.allVaults : vaultName(vault, t)}
                     {g.deadline && <> · {new Date(g.deadline).toLocaleDateString(lang === "ar" ? "ar-IQ" : lang, { day: "numeric", month: "short", year: "numeric" })}</>}
                   </p>
                 </div>
@@ -94,6 +102,7 @@ function Page() {
       </div>
 
       {goals.length === 0 && <Empty icon={<Target className="size-5" />} text={t.noGoals} />}
+      </>}
 
       <Modal open={!!editing} onOpenChange={(o) => !o && setEditing(null)} title={editing?.id ? t.edit : t.addGoal}>
         {editing && (
@@ -118,6 +127,7 @@ function Page() {
             </Field>
             <Field label={t.fundedFrom}>
               <select value={editing.vaultId ?? ""} onChange={(e) => setEditing({ ...editing, vaultId: e.target.value })} className={inputCls}>
+                <option value="all">{t.allVaults} — {money(totalBalance)}</option>
                 {vaults.map((v) => <option key={v.id} value={v.id}>{vaultName(v, t)} — {money(v.balance)}</option>)}
               </select>
             </Field>

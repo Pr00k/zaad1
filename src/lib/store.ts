@@ -49,7 +49,7 @@ interface State {
   vaults: Vault[]; txs: Tx[]; goals: Goal[]; installments: Installment[]; reminders: Reminder[]; settings: Settings;
   saveInstallment(plan: Partial<Installment>): Result;
   deleteInstallment(id: string): void;
-  payInstallment(id: string, index: number, date: string): Result;
+  payInstallment(id: string, index: number, date: string, vaultId?: string): Result;
   markInstallmentNotified(id: string, index: number): void;
   addIncome(amount: number, note: string, date: string, vaultId: string | null): Result;
   addExpense(amount: number, note: string, date: string, vaultId: string): Result;
@@ -195,12 +195,14 @@ export const useZad = create<State>()(
         return { ok: true };
       },
       deleteInstallment(id) { set((s) => ({ installments: s.installments.filter((p) => p.id !== id) })); },
-      payInstallment(id, index, date) {
+      payInstallment(id, index, date, sourceId) {
         const plan = get().installments.find((p) => p.id === id);
         if (!plan || nextInstallmentIndex(plan) !== index) return { ok: false, error: "alreadyPaid" };
-        const funding = fundingAllocations(get().vaults, plan.vaultId, plan.amount);
+        const source = sourceId ?? plan.vaultId;
+        if (source !== "all" && !get().vaults.some((v) => v.id === source)) return { ok: false, error: "insufficient" };
+        const funding = fundingAllocations(get().vaults, source, plan.amount);
         if (!funding.ok) return funding;
-        const tx: Tx = { id: uid(), type: "expense", amount: plan.amount, note: plan.name, date, vaultId: plan.vaultId === "all" ? null : plan.vaultId, allocations: funding.allocations, installmentId: id, installmentIndex: index, createdAt: Date.now() };
+        const tx: Tx = { id: uid(), type: "expense", amount: plan.amount, note: plan.name, date, vaultId: source === "all" ? null : source, allocations: funding.allocations, installmentId: id, installmentIndex: index, createdAt: Date.now() };
         set((s) => ({ vaults: deductAllocations(s.vaults, funding.allocations), txs: [tx, ...s.txs], installments: s.installments.map((p) => p.id === id ? { ...p, payments: [...p.payments, { index, txId: tx.id, date, amount: plan.amount }] } : p) }));
         return { ok: true };
       },
