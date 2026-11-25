@@ -16,3 +16,4 @@
 - Keep remote MCP tools read-only under src/lib/mcp with verified OAuth caller identity and existing RLS; never expose guest storage or bypass financial snapshot writes.
 - Register browser-local tools in the owning screen with useWebMCP and static fail-open telemetry; keep them separate from the remote MCP catalog.
 - Preserve canonical local consent return paths across password, signup and Google login so authorization requests survive sign-in.
+- Installment plans live in the financial snapshot and record each payment as an expense transaction linked by installment index, so undo, sync and duplicate-payment protection stay consistent.
